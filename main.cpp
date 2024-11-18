@@ -4,10 +4,12 @@
 #include <random>
 #include <iostream>
 #include <iomanip>
+#include <chrono>
 
 // 常數定義
 const int MAP_SIZE = 256;
 const int MAX_ROUNDS = 100;
+const bool VERBOSE_OUTPUT = true; // 控制是否輸出詳細資訊
 
 // 玩家策略參數結構體
 struct StrategyParams {
@@ -35,6 +37,11 @@ struct StrategyParams {
             allyDistanceWeight = -0.4;
         }
     }
+
+    // 新增: 自定義參數建構函式
+    StrategyParams(double hw, double mw, double bw, double tw, double ew, double aw)
+        : healthWeight(hw), missileWeight(mw), blockWeight(bw),
+          targetWeight(tw), enemyDistanceWeight(ew), allyDistanceWeight(aw) {}
 };
 
 // 座標結構
@@ -46,54 +53,73 @@ struct Position {
         return x == other.x && y == other.y;
     }
 
+    // 優化: 使用曼哈頓距離代替歐幾里得距離，減少sqrt運算
     double distanceTo(const Position& other) const {
-        return std::sqrt(std::pow(x - other.x, 2) + std::pow(y - other.y, 2));
+        return std::abs(x - other.x) + std::abs(y - other.y);
     }
 };
 
-// 飛彈類別
-class Missile {
+// 預計算傷害區域的快取
+class DamageAreaCache {
 public:
-    enum Type { CROSS, SQUARE };
+    static std::vector<Position>& getCrossDamageArea(const Position& target) {
+        static std::vector<std::vector<Position>> cache(MAP_SIZE * MAP_SIZE);
+        int index = target.y * MAP_SIZE + target.x;
 
-    Missile(Type t) : type(t) {}
-
-    std::vector<Position> getDamageArea(const Position& target) const {
-        std::vector<Position> area;
-        if (type == CROSS) {
-            // 十字範圍
+        if (cache[index].empty()) {
             const int dx[] = {0, 1, 0, -1, 0};
             const int dy[] = {0, 0, 1, 0, -1};
             for (int i = 0; i < 5; ++i) {
                 Position pos(target.x + dx[i], target.y + dy[i]);
                 if (isValidPosition(pos)) {
-                    area.push_back(pos);
+                    cache[index].push_back(pos);
                 }
             }
-        } else {
-            // 九宮格範圍
+        }
+        return cache[index];
+    }
+
+    static std::vector<Position>& getSquareDamageArea(const Position& target) {
+        static std::vector<std::vector<Position>> cache(MAP_SIZE * MAP_SIZE);
+        int index = target.y * MAP_SIZE + target.x;
+
+        if (cache[index].empty()) {
             for (int dx = -1; dx <= 1; ++dx) {
                 for (int dy = -1; dy <= 1; ++dy) {
                     Position pos(target.x + dx, target.y + dy);
                     if (isValidPosition(pos)) {
-                        area.push_back(pos);
+                        cache[index].push_back(pos);
                     }
                 }
             }
         }
-        return area;
+        return cache[index];
     }
 
-    Type getType() const { return type; }
-
 private:
-    Type type;
-
-    bool isValidPosition(const Position& pos) const {
+    static bool isValidPosition(const Position& pos) {
         return pos.x >= 0 && pos.x < MAP_SIZE && pos.y >= 0 && pos.y < MAP_SIZE;
     }
 };
 
+class Missile {
+public:
+    enum Type { CROSS, SQUARE };
+
+private:
+    Type type;  // 添加成員變數宣告
+
+public:
+    Missile(Type t) : type(t) {}
+
+    std::vector<Position>& getDamageArea(const Position& target) const {
+        return type == CROSS ?
+            DamageAreaCache::getCrossDamageArea(target) :
+            DamageAreaCache::getSquareDamageArea(target);
+    }
+
+    Type getType() const { return type; }
+};
 // 船艦類別
 class Ship {
 public:
@@ -129,19 +155,21 @@ public:
                 params.missileWeight);
     }
 
-    std::vector<Position> getPossibleMoves() const {
-        std::vector<Position> moves;
-        for (int dx = -moveRange; dx <= moveRange; ++dx) {
-            for (int dy = -moveRange; dy <= moveRange; ++dy) {
-                if (std::abs(dx) + std::abs(dy) <= moveRange) {
-                    Position newPos(position.x + dx, position.y + dy);
-                    if (isValidPosition(newPos)) {
-                        moves.push_back(newPos);
+    // 優化: 預計算並快取可能的移動位置
+    const std::vector<Position>& getPossibleMoves() {
+        if (cachedMoves.empty()) {
+            for (int dx = -moveRange; dx <= moveRange; ++dx) {
+                for (int dy = -moveRange; dy <= moveRange; ++dy) {
+                    if (std::abs(dx) + std::abs(dy) <= moveRange) {
+                        Position newPos(position.x + dx, position.y + dy);
+                        if (isValidPosition(newPos)) {
+                            cachedMoves.push_back(newPos);
+                        }
                     }
                 }
             }
         }
-        return moves;
+        return cachedMoves;
     }
 
 private:
@@ -151,8 +179,9 @@ private:
     int remainingCrossMissiles;
     int remainingSquareMissiles;
     Position position;
+    std::vector<Position> cachedMoves;
 
-    bool isValidPosition(const Position& pos) const {
+    static bool isValidPosition(const Position& pos) {
         return pos.x >= 0 && pos.x < MAP_SIZE && pos.y >= 0 && pos.y < MAP_SIZE;
     }
 };
@@ -160,43 +189,20 @@ private:
 // 玩家類別
 class Player {
 public:
-    Player(bool isFirst)
+    Player(bool isFirst, const StrategyParams& customParams = StrategyParams(true))
         : isFirstPlayer(isFirst),
-          params(isFirst) {
-        if(isFirst) {
-            // 初始化三種不同的船艦，包含兩種飛彈的數量
-            for(int i=0; i<2; i++) {
-                ships.push_back(Ship(1, 2, 0, 3)); // 快速船
-            }
-            for (int i=0; i<2; i++) {
-                ships.push_back(Ship(2, 3, 4, 2)); // 中型船
-            }
-            for (int i=0; i<4; i++) {
-                ships.push_back(Ship(3, 4, 5, 4)); // 重型船
-            }
-
-        }
-        else {
-
-            for(int i=0; i<3; i++) {
-                ships.push_back(Ship(1, 2, 0, 3)); // 快速船
-            }
-            for (int i=0; i<3; i++) {
-                ships.push_back(Ship(2, 3, 4, 2)); // 中型船
-            }
-            for (int i=0; i<3; i++) {
-                ships.push_back(Ship(3, 4, 5, 4)); // 重型船
-            }
-        }
-
+          params(customParams) {
+        initializeShips(isFirst);
     }
 
     void placeShips() {
         std::random_device rd;
         std::mt19937 gen(rd());
 
-        std::cout << (isFirstPlayer ? "Player 1" : "Player 2")
-                  << " placing ships:\n";
+        if (VERBOSE_OUTPUT) {
+            std::cout << (isFirstPlayer ? "Player 1" : "Player 2")
+                      << " placing ships:\n";
+        }
 
         for (size_t i = 0; i < ships.size(); ++i) {
             bool placed = false;
@@ -209,13 +215,15 @@ public:
                 Position pos(x, y);
                 if (canPlaceShip(pos)) {
                     ships[i].setPosition(pos);
-                    std::cout << "Ship " << i + 1 << " placed at ("
-                              << x << "," << y << ")\n";
+                    if (VERBOSE_OUTPUT) {
+                        std::cout << "Ship " << i + 1 << " placed at ("
+                                  << x << "," << y << ")\n";
+                    }
                     placed = true;
                 }
             }
         }
-        std::cout << "\n";
+        if (VERBOSE_OUTPUT) std::cout << "\n";
     }
 
     struct MoveDecision {
@@ -225,15 +233,17 @@ public:
     };
 
     MoveDecision chooseMovePosition(Ship& ship, const Player& enemy) {
-        std::vector<Position> moves = ship.getPossibleMoves();
+        const std::vector<Position>& moves = ship.getPossibleMoves();
         MoveDecision best{ship.getPosition(),
                          -std::numeric_limits<double>::infinity(),
                          "No valid moves"};
 
-        std::cout << (isFirstPlayer ? "Player 1" : "Player 2")
-                  << " evaluating moves for ship at ("
-                  << ship.getPosition().x << ","
-                  << ship.getPosition().y << "):\n";
+        if (VERBOSE_OUTPUT) {
+            std::cout << (isFirstPlayer ? "Player 1" : "Player 2")
+                      << " evaluating moves for ship at ("
+                      << ship.getPosition().x << ","
+                      << ship.getPosition().y << "):\n";
+        }
 
         for (const Position& move : moves) {
             if (!canMoveTo(move)) continue;
@@ -241,18 +251,16 @@ public:
             std::string explanation;
             double score = evaluateMove(move, ship, enemy, explanation);
 
-            // std::cout << "  Move to (" << move.x << "," << move.y
-            //           << "): score=" << std::fixed << std::setprecision(2)
-            //           << score << " - " << explanation << "\n";
-
             if (score > best.score) {
                 best = {move, score, explanation};
             }
         }
 
-        std::cout << "Chosen move: (" << best.position.x << ","
-                  << best.position.y << ") with score "
-                  << best.score << "\n\n";
+        if (VERBOSE_OUTPUT) {
+            std::cout << "Chosen move: (" << best.position.x << ","
+                      << best.position.y << ") with score "
+                      << best.score << "\n\n";
+        }
 
         return best;
     }
@@ -264,62 +272,61 @@ public:
         std::string explanation;
     };
 
-    AttackDecision chooseAttackPosition(const Ship& ship,
-                                      const Player& enemy) {
+    AttackDecision chooseAttackPosition(Ship& ship, const Player& enemy) {
         AttackDecision best{{-1, -1}, Missile::CROSS,
                            -std::numeric_limits<double>::infinity(),
                            "No valid attacks"};
 
-        std::cout << (isFirstPlayer ? "Player 1" : "Player 2")
-                  << " evaluating attacks for ship at ("
-                  << ship.getPosition().x << ","
-                  << ship.getPosition().y << "):\n";
+        if (VERBOSE_OUTPUT) {
+            std::cout << (isFirstPlayer ? "Player 1" : "Player 2")
+                      << " evaluating attacks for ship at ("
+                      << ship.getPosition().x << ","
+                      << ship.getPosition().y << "):\n";
+        }
 
-        // 評估兩種飛彈類型
-        for (int type = 0; type <= 1; ++type) {
-            Missile::Type missileType =
-                type == 0 ? Missile::CROSS : Missile::SQUARE;
-
-            // 檢查是否還有該類型的飛彈
-            if ((missileType == Missile::CROSS &&
-                 ship.getCrossMissiles() == 0) ||
-                (missileType == Missile::SQUARE &&
-                 ship.getSquareMissiles() == 0)) {
-                continue;
+        // 僅在有飛彈時評估攻擊
+        if (ship.getCrossMissiles() > 0 || ship.getSquareMissiles() > 0) {
+            // 優化: 只檢查敵人可能移動到的位置
+            std::vector<Position> potentialTargets;
+            for (const Ship& enemyShip : enemy.getShips()) {
+                if (!enemyShip.isDead()) {
+                    const std::vector<Position>& enemyMoves =
+                        const_cast<Ship&>(enemyShip).getPossibleMoves();
+                    potentialTargets.insert(potentialTargets.end(),
+                                          enemyMoves.begin(), enemyMoves.end());
+                }
             }
 
-            for (int x = 0; x < MAP_SIZE; ++x) {
-                for (int y = 0; y < MAP_SIZE; ++y) {
-                    Position target(x, y);
+            // 對每個潛在目標評估攻擊
+            for (const Position& target : potentialTargets) {
+                for (int type = 0; type <= 1; ++type) {
+                    Missile::Type missileType =
+                        type == 0 ? Missile::CROSS : Missile::SQUARE;
+
+                    if ((missileType == Missile::CROSS &&
+                         ship.getCrossMissiles() == 0) ||
+                        (missileType == Missile::SQUARE &&
+                         ship.getSquareMissiles() == 0)) {
+                        continue;
+                    }
+
                     std::string explanation;
                     double score = evaluateAttack(target, enemy,
                                                 missileType, explanation);
 
-                    if (score > 0) {
-                        // std::cout << "  Attack at (" << x << "," << y
-                        //           << ") with "
-                        //           << (missileType == Missile::CROSS ?
-                        //               "CROSS" : "SQUARE")
-                        //           << " missile: score=" << std::fixed
-                        //           << std::setprecision(2) << score
-                        //           << " - " << explanation << "\n";
-
-                        if (score > best.score) {
-                            best = {target, missileType, score, explanation};
-                        }
+                    if (score > best.score) {
+                        best = {target, missileType, score, explanation};
                     }
                 }
             }
         }
 
-        if (best.score > 0) {
+        if (VERBOSE_OUTPUT && best.score > 0) {
             std::cout << "Chosen attack: (" << best.position.x << ","
                       << best.position.y << ") with "
                       << (best.missileType == Missile::CROSS ?
                           "CROSS" : "SQUARE")
                       << " missile, score " << best.score << "\n\n";
-        } else {
-            std::cout << "No attack chosen\n\n";
         }
 
         return best;
@@ -337,6 +344,30 @@ private:
     bool isFirstPlayer;
     std::vector<Ship> ships;
     StrategyParams params;
+
+    void initializeShips(bool isFirst) {
+        if(isFirst) {
+            for(int i=0; i<2; i++) {
+                ships.push_back(Ship(1, 2, 0, 3));
+            }
+            for (int i=0; i<2; i++) {
+                ships.push_back(Ship(2, 3, 4, 2));
+            }
+            for (int i=0; i<4; i++) {
+                ships.push_back(Ship(3, 4, 5, 4));
+            }
+        } else {
+            for(int i=0; i<3; i++) {
+                ships.push_back(Ship(1, 2, 0, 3));
+            }
+            for (int i=0; i<3; i++) {
+                ships.push_back(Ship(2, 3, 4, 2));
+            }
+            for (int i=0; i<3; i++) {
+                ships.push_back(Ship(3, 4, 5, 4));
+            }
+        }
+    }
 
     bool canPlaceShip(const Position& pos) const {
         for (const Ship& ship : ships) {
@@ -368,8 +399,6 @@ private:
             }
         }
         score += enemyDistanceScore;
-        explanation += "Enemy distance score: " +
-                      std::to_string(enemyDistanceScore) + "; ";
 
         // 計算與隊友的距離得分
         double allyDistanceScore = 0;
@@ -380,8 +409,6 @@ private:
             }
         }
         score += allyDistanceScore;
-        explanation += "Ally distance score: " +
-                      std::to_string(allyDistanceScore) + "; ";
 
         // 計算格檔和被瞄準得分
         int blockCount = 0, targetCount = 0;
@@ -402,15 +429,8 @@ private:
             }
         }
 
-        double blockScore = blockCount * params.blockWeight *
-                           ship.getValue(params);
-        score += blockScore;
-        explanation += "Block score: " + std::to_string(blockScore) + "; ";
-
-        double targetScore = targetCount * params.targetWeight *
-                            ship.getValue(params);
-        score += targetScore;
-        explanation += "Target score: " + std::to_string(targetScore);
+        score += blockCount * params.blockWeight * ship.getValue(params);
+        score += targetCount * params.targetWeight * ship.getValue(params);
 
         return score;
     }
@@ -421,13 +441,14 @@ private:
         explanation = "";
 
         Missile missile(missileType);
-        auto damageArea = missile.getDamageArea(target);
+        std::vector<Position>& damageArea = missile.getDamageArea(target);
 
         // 計算可能傷害到的敵人價值
         double potentialDamage = 0;
         for (const Ship& enemyShip : enemy.getShips()) {
             if (!enemyShip.isDead()) {
-                std::vector<Position> moves = enemyShip.getPossibleMoves();
+                const std::vector<Position>& moves =
+                    const_cast<Ship&>(enemyShip).getPossibleMoves();
                 double moveCount = moves.size();
 
                 for (const Position& pos : damageArea) {
@@ -442,15 +463,12 @@ private:
         }
 
         score += potentialDamage;
-        explanation += "Potential damage: " +
-                      std::to_string(potentialDamage) + "; ";
 
         // 檢查是否會誤傷隊友
         for (const Ship& allyShip : ships) {
             if (!allyShip.isDead()) {
                 for (const Position& pos : damageArea) {
                     if (pos == allyShip.getPosition()) {
-                        explanation += "Would damage ally";
                         return -std::numeric_limits<double>::infinity();
                     }
                 }
@@ -462,7 +480,7 @@ private:
 
     bool isInLine(const Position& from, const Position& to,
                   const Position& point) const {
-        // 簡化的射線檢測
+        // 優化: 使用曼哈頓距離
         double d1 = point.distanceTo(from);
         double d2 = point.distanceTo(to);
         double d3 = from.distanceTo(to);
@@ -473,45 +491,68 @@ private:
 class Game {
 public:
     Game() : player1(true), player2(false), round(0) {
-        // 初始化遊戲地圖
         map.resize(MAP_SIZE, std::vector<char>(MAP_SIZE, '.'));
     }
 
-    void run() {
-        std::cout << "Game Start!\n\n";
+    // 新增: 使用自定義參數建構遊戲
+    Game(const StrategyParams& p1Params, const StrategyParams& p2Params)
+        : player1(true, p1Params), player2(false, p2Params), round(0) {
+        map.resize(MAP_SIZE, std::vector<char>(MAP_SIZE, '.'));
+    }
 
-        // 1. 玩家1放置船艦
-        std::cout << "Phase: Player 1 placing ships\n";
+    struct GameResult {
+        int rounds;
+        int p1Ships;
+        int p1Health;
+        int p2Ships;
+        int p2Health;
+        int winner; // 1 for player1, 2 for player2, 0 for draw
+        double duration; // in seconds
+    };
+
+    GameResult run() {
+        auto startTime = std::chrono::high_resolution_clock::now();
+
+        if (VERBOSE_OUTPUT) {
+            std::cout << "Game Start!\n\n";
+            std::cout << "Phase: Player 1 placing ships\n";
+        }
+
         player1.placeShips();
         updateMap();
-        printStatus();
+        if (VERBOSE_OUTPUT) printStatus();
 
-        // 2. 玩家2放置船艦
-        std::cout << "Phase: Player 2 placing ships\n";
+        if (VERBOSE_OUTPUT) {
+            std::cout << "Phase: Player 2 placing ships\n";
+        }
         player2.placeShips();
         updateMap();
-        printStatus();
+        if (VERBOSE_OUTPUT) printStatus();
 
-        // 主遊戲循環
         while (!isGameOver()) {
             ++round;
-            std::cout << "\nRound " << round << " Start!\n\n";
+            if (VERBOSE_OUTPUT) {
+                std::cout << "\nRound " << round << " Start!\n\n";
+                std::cout << "Phase: Player 1 choosing attack positions\n";
+            }
 
-            // 3. 玩家1選擇攻擊地點
-            std::cout << "Phase: Player 1 choosing attack positions\n";
-            std::vector<std::pair<Position, Missile::Type>> p1Attacks;
-            for (const Ship& ship : player1.getShips()) {
+            // 玩家1攻擊階段
+            std::vector<std::tuple<Position, Missile::Type, Ship*>> p1Attacks;
+            for (Ship& ship : const_cast<std::vector<Ship>&>(player1.getShips())) {
                 if (!ship.isDead()) {
                     auto decision = player1.chooseAttackPosition(ship, player2);
                     if (decision.score > 0) {
                         p1Attacks.emplace_back(decision.position,
-                                             decision.missileType);
+                                             decision.missileType,
+                                             &ship);
                     }
                 }
             }
 
-            // 4. 玩家2移動船艦
-            std::cout << "Phase: Player 2 moving ships\n";
+            // 玩家2移動階段
+            if (VERBOSE_OUTPUT) {
+                std::cout << "Phase: Player 2 moving ships\n";
+            }
             for (Ship& ship : const_cast<std::vector<Ship>&>(player2.getShips())) {
                 if (!ship.isDead()) {
                     auto decision = player2.chooseMovePosition(ship, player1);
@@ -519,33 +560,42 @@ public:
                 }
             }
             updateMap();
-            printStatus();
+            if (VERBOSE_OUTPUT) printStatus();
 
-            // 5. 玩家1攻擊觸發
-            std::cout << "Phase: Player 1 attacks triggering\n";
-            for (const auto& attack : p1Attacks) {
-                handleAttack(attack.first, attack.second, player1, player2);
+            // 玩家1攻擊觸發
+            if (VERBOSE_OUTPUT) {
+                std::cout << "Phase: Player 1 attacks triggering\n";
+            }
+            for (const auto& [pos, type, ship] : p1Attacks) {
+                if (ship->useMissile(type)) {  // 檢查並消耗飛彈
+                    handleAttack(pos, type, player1, player2);
+                }
             }
             updateMap();
-            printStatus();
+            if (VERBOSE_OUTPUT) printStatus();
 
             if (isGameOver()) break;
 
-            // 6. 玩家2選擇攻擊地點
-            std::cout << "Phase: Player 2 choosing attack positions\n";
-            std::vector<std::pair<Position, Missile::Type>> p2Attacks;
-            for (const Ship& ship : player2.getShips()) {
+            // 玩家2攻擊階段
+            if (VERBOSE_OUTPUT) {
+                std::cout << "Phase: Player 2 choosing attack positions\n";
+            }
+            std::vector<std::tuple<Position, Missile::Type, Ship*>> p2Attacks;
+            for (Ship& ship : const_cast<std::vector<Ship>&>(player2.getShips())) {
                 if (!ship.isDead()) {
                     auto decision = player2.chooseAttackPosition(ship, player1);
                     if (decision.score > 0) {
                         p2Attacks.emplace_back(decision.position,
-                                             decision.missileType);
+                                             decision.missileType,
+                                             &ship);
                     }
                 }
             }
 
-            // 7. 玩家1移動船艦
-            std::cout << "Phase: Player 1 moving ships\n";
+            // 玩家1移動階段
+            if (VERBOSE_OUTPUT) {
+                std::cout << "Phase: Player 1 moving ships\n";
+            }
             for (Ship& ship : const_cast<std::vector<Ship>&>(player1.getShips())) {
                 if (!ship.isDead()) {
                     auto decision = player1.chooseMovePosition(ship, player2);
@@ -553,18 +603,25 @@ public:
                 }
             }
             updateMap();
-            printStatus();
+            if (VERBOSE_OUTPUT) printStatus();
 
-            // 8. 玩家2攻擊觸發
-            std::cout << "Phase: Player 2 attacks triggering\n";
-            for (const auto& attack : p2Attacks) {
-                handleAttack(attack.first, attack.second, player2, player1);
+            // 玩家2攻擊觸發
+            if (VERBOSE_OUTPUT) {
+                std::cout << "Phase: Player 2 attacks triggering\n";
+            }
+            for (const auto& [pos, type, ship] : p2Attacks) {
+                if (ship->useMissile(type)) {  // 檢查並消耗飛彈
+                    handleAttack(pos, type, player2, player1);
+                }
             }
             updateMap();
-            printStatus();
+            if (VERBOSE_OUTPUT) printStatus();
         }
 
-        announceWinner();
+        auto endTime = std::chrono::high_resolution_clock::now();
+        double duration = std::chrono::duration<double>(endTime - startTime).count();
+
+        return getGameResult(duration);
     }
 
 private:
@@ -574,31 +631,35 @@ private:
 
     void handleAttack(const Position& target, Missile::Type missileType,
                      Player& attacker, Player& defender) {
-        std::cout << "Attack at (" << target.x << "," << target.y << ") with "
-                  << (missileType == Missile::CROSS ? "CROSS" : "SQUARE")
-                  << " missile\n";
+        if (VERBOSE_OUTPUT) {
+            std::cout << "Attack at (" << target.x << "," << target.y << ") with "
+                      << (missileType == Missile::CROSS ? "CROSS" : "SQUARE")
+                      << " missile\n";
+        }
 
         Missile missile(missileType);
-        auto damageArea = missile.getDamageArea(target);
+        std::vector<Position>& damageArea = missile.getDamageArea(target);
 
         for (const Position& pos : damageArea) {
             for (Ship& ship : const_cast<std::vector<Ship>&>(defender.getShips())) {
                 if (!ship.isDead() && ship.getPosition() == pos) {
                     ship.takeDamage(1);
-                    std::cout << "Hit ship at (" << pos.x << "," << pos.y
-                              << "), damage dealt: 1\n";
+                    if (VERBOSE_OUTPUT) {
+                        std::cout << "Hit ship at (" << pos.x << "," << pos.y
+                                  << "), damage dealt: 1\n";
+                    }
                 }
             }
         }
     }
 
     void updateMap() {
-        // 清空地圖
+        if (!VERBOSE_OUTPUT) return;
+
         for (auto& row : map) {
             std::fill(row.begin(), row.end(), '.');
         }
 
-        // 更新玩家1的船艦
         for (const Ship& ship : player1.getShips()) {
             if (!ship.isDead()) {
                 Position pos = ship.getPosition();
@@ -606,7 +667,6 @@ private:
             }
         }
 
-        // 更新玩家2的船艦
         for (const Ship& ship : player2.getShips()) {
             if (!ship.isDead()) {
                 Position pos = ship.getPosition();
@@ -616,25 +676,11 @@ private:
     }
 
     void printStatus() const {
+        if (!VERBOSE_OUTPUT) return;
+
         std::cout << "\nCurrent game state:\n";
         std::cout << "Round: " << round << "\n\n";
-        // // 打印地圖
-        // std::cout << "  ";
-        // for (int i = 0; i < MAP_SIZE; ++i) {
-        //     std::cout << i << ' ';
-        // }
-        // std::cout << "\n";
-        //
-        // for (int i = 0; i < MAP_SIZE; ++i) {
-        //     std::cout << i << ' ';
-        //     for (char cell : map[i]) {
-        //         std::cout << cell << ' ';
-        //     }
-        //     std::cout << '\n';
-        // }
-        // std::cout << '\n';
 
-        // 打印船艦狀態
         printPlayerStatus(player1, "Player 1");
         printPlayerStatus(player2, "Player 2");
         std::cout << "\n";
@@ -658,17 +704,9 @@ private:
     }
 
     bool isGameOver() const {
-        // 檢查回合數限制
-        if (round >= MAX_ROUNDS) {
-            return true;
-        }
+        if (round >= MAX_ROUNDS) return true;
+        if (player1.isDefeated() || player2.isDefeated()) return true;
 
-        // 檢查玩家船艦是否全滅
-        if (player1.isDefeated() || player2.isDefeated()) {
-            return true;
-        }
-
-        // 檢查飛彈是否用盡
         bool player1HasMissiles = false;
         bool player2HasMissiles = false;
 
@@ -693,11 +731,7 @@ private:
         return !player1HasMissiles && !player2HasMissiles;
     }
 
-    void announceWinner() const {
-        std::cout << "\nGame Over!\n";
-        std::cout << "Total Rounds: " << round << "\n\n";
-
-        // 計算存活船艦數和總血量
+    GameResult getGameResult(double duration) const {
         int p1Ships = 0, p1Health = 0;
         int p2Ships = 0, p2Health = 0;
 
@@ -715,27 +749,231 @@ private:
             }
         }
 
-        std::cout << "Player 1: " << p1Ships << " ships remaining, "
-                  << "total HP: " << p1Health << "\n";
-        std::cout << "Player 2: " << p2Ships << " ships remaining, "
-                  << "total HP: " << p2Health << "\n\n";
-
+        int winner;
         if (p1Ships > p2Ships || (p1Ships == p2Ships && p1Health > p2Health)) {
-            std::cout << "Player 1 Wins!\n";
+            winner = 1;
         } else if (p2Ships > p1Ships || (p1Ships == p2Ships && p2Health > p1Health)) {
-            std::cout << "Player 2 Wins!\n";
+            winner = 2;
         } else {
-            std::cout << "It's a Draw!\n";
+            winner = 0;
         }
+
+        if (VERBOSE_OUTPUT) {
+            std::cout << "\nGame Over!\n";
+            std::cout << "Total Rounds: " << round << "\n\n";
+            std::cout << "Player 1: " << p1Ships << " ships remaining, "
+                      << "total HP: " << p1Health << "\n";
+            std::cout << "Player 2: " << p2Ships << " ships remaining, "
+                      << "total HP: " << p2Health << "\n\n";
+
+            if (winner == 1) {
+                std::cout << "Player 1 Wins!\n";
+            } else if (winner == 2) {
+                std::cout << "Player 2 Wins!\n";
+            } else {
+                std::cout << "It's a Draw!\n";
+            }
+        }
+
+        return GameResult{round, p1Ships, p1Health, p2Ships, p2Health,
+                         winner, duration};
     }
 };
+
+// 新增: 參數實驗函數
+// 實驗結果結構體
+struct ExperimentResult {
+    int p1Wins = 0;
+    int p2Wins = 0;
+    int draws = 0;
+    int totalRounds = 0;
+    // 玩家1的統計
+    int p1TotalShipsRemaining = 0;
+    int p1TotalHealthRemaining = 0;
+    // 玩家2的統計
+    int p2TotalShipsRemaining = 0;
+    int p2TotalHealthRemaining = 0;
+    double totalDuration = 0.0;
+};
+
+void runParameterExperiment() {
+    const int EXPERIMENT_ROUNDS = 100;
+    std::vector<std::pair<std::string, StrategyParams>> paramSets = {
+        {"Aggressive", StrategyParams(1.0, 1.2, 0.8, -0.5, 0.7, -0.2)},
+        {"Defensive", StrategyParams(1.2, 0.8, 1.2, -1.2, 0.4, -0.5)},
+        {"Balanced", StrategyParams(1.0, 1.0, 1.0, -1.0, 0.5, -0.3)},
+        {"Missile-focused", StrategyParams(0.8, 1.5, 0.7, -0.8, 0.6, -0.2)},
+        {"Health-focused", StrategyParams(1.5, 0.7, 1.0, -1.0, 0.5, -0.4)}
+    };
+
+    // 創建結果矩陣
+    std::vector<std::vector<ExperimentResult>> results(
+        paramSets.size(), std::vector<ExperimentResult>(paramSets.size()));
+
+    // 執行實驗
+    for (size_t i = 0; i < paramSets.size(); ++i) {
+        for (size_t j = 0; j < paramSets.size(); ++j) {
+            std::cout << "Testing P1:" << paramSets[i].first << " vs P2:"
+                     << paramSets[j].first << "...\n";
+
+            for (int k = 0; k < EXPERIMENT_ROUNDS; ++k) {
+                Game game(paramSets[i].second, paramSets[j].second);
+                auto result = game.run();
+
+                // 更新統計資料
+                if (result.winner == 1) {
+                    results[i][j].p1Wins++;
+                    results[i][j].p1TotalShipsRemaining += result.p1Ships;
+                    results[i][j].p1TotalHealthRemaining += result.p1Health;
+                } else if (result.winner == 2) {
+                    results[i][j].p2Wins++;
+                    results[i][j].p2TotalShipsRemaining += result.p2Ships;
+                    results[i][j].p2TotalHealthRemaining += result.p2Health;
+                } else {
+                    results[i][j].draws++;
+                }
+
+                results[i][j].totalRounds += result.rounds;
+                results[i][j].totalDuration += result.duration;
+            }
+        }
+    }
+
+    // 計算每個策略作為P1和P2時的總體表現
+    struct StrategyPerformance {
+        double p1WinRate = 0.0;
+        double p2WinRate = 0.0;
+        double avgRounds = 0.0;
+        int totalGamesAsP1 = 0;
+        int totalGamesAsP2 = 0;
+        int totalWinsAsP1 = 0;
+        int totalWinsAsP2 = 0;
+    };
+
+    std::vector<StrategyPerformance> performances(paramSets.size());
+
+    // 計算每個策略的表現
+    for (size_t i = 0; i < paramSets.size(); ++i) {
+        for (size_t j = 0; j < paramSets.size(); ++j) {
+            if (i == j) continue;
+
+            // 作為P1時的統計
+            performances[i].totalGamesAsP1 += EXPERIMENT_ROUNDS;
+            performances[i].totalWinsAsP1 += results[i][j].p1Wins;
+
+            // 作為P2時的統計
+            performances[j].totalGamesAsP2 += EXPERIMENT_ROUNDS;
+            performances[j].totalWinsAsP2 += results[i][j].p2Wins;
+        }
+    }
+
+    // 輸出結果
+    std::cout << "\nStrategy Performance Analysis:\n";
+    std::cout << "============================\n\n";
+
+    // 輸出表頭
+    std::cout << std::left << std::setw(20) << "Strategy"
+              << std::right << std::setw(15) << "P1 Win Rate"
+              << std::setw(15) << "P2 Win Rate"
+              << std::setw(20) << "Total P1 Wins"
+              << std::setw(20) << "Total P2 Wins" << "\n";
+    std::cout << std::string(90, '-') << "\n";
+
+    // 找出最佳P1和P2策略
+    size_t bestP1Strategy = 0;
+    size_t bestP2Strategy = 0;
+    double bestP1WinRate = 0.0;
+    double bestP2WinRate = 0.0;
+
+    // 輸出每個策略的表現
+    for (size_t i = 0; i < paramSets.size(); ++i) {
+        double p1WinRate = static_cast<double>(performances[i].totalWinsAsP1) /
+                          performances[i].totalGamesAsP1 * 100;
+        double p2WinRate = static_cast<double>(performances[i].totalWinsAsP2) /
+                          performances[i].totalGamesAsP2 * 100;
+
+        // 更新最佳策略
+        if (p1WinRate > bestP1WinRate) {
+            bestP1WinRate = p1WinRate;
+            bestP1Strategy = i;
+        }
+        if (p2WinRate > bestP2WinRate) {
+            bestP2WinRate = p2WinRate;
+            bestP2Strategy = i;
+        }
+
+        std::cout << std::left << std::setw(20) << paramSets[i].first
+                  << std::right << std::fixed << std::setprecision(1)
+                  << std::setw(14) << p1WinRate << "%"
+                  << std::setw(14) << p2WinRate << "%"
+                  << std::setw(20) << performances[i].totalWinsAsP1
+                  << std::setw(20) << performances[i].totalWinsAsP2 << "\n";
+    }
+
+    // 輸出最佳策略建議
+    std::cout << "\nStrategy Recommendations:\n";
+    std::cout << "=======================\n";
+    std::cout << "Best strategy as Player 1: " << paramSets[bestP1Strategy].first
+              << " (Win Rate: " << std::fixed << std::setprecision(1)
+              << bestP1WinRate << "%)\n";
+    std::cout << "Best strategy as Player 2: " << paramSets[bestP2Strategy].first
+              << " (Win Rate: " << bestP2WinRate << "%)\n\n";
+
+    // 輸出詳細對戰統計
+    std::cout << "Detailed Matchup Statistics:\n";
+    std::cout << "==========================\n\n";
+
+    for (size_t i = 0; i < paramSets.size(); ++i) {
+        for (size_t j = 0; j < paramSets.size(); ++j) {
+            if (i == j) continue;
+
+            std::cout << "P1:" << paramSets[i].first << " vs P2:"
+                     << paramSets[j].first << ":\n";
+            std::cout << "  P1 Wins: " << results[i][j].p1Wins << " ("
+                     << std::fixed << std::setprecision(1)
+                     << (static_cast<double>(results[i][j].p1Wins) /
+                         EXPERIMENT_ROUNDS * 100) << "%)\n";
+            std::cout << "  P2 Wins: " << results[i][j].p2Wins << " ("
+                     << (static_cast<double>(results[i][j].p2Wins) /
+                         EXPERIMENT_ROUNDS * 100) << "%)\n";
+            std::cout << "  Draws: " << results[i][j].draws << " ("
+                     << (static_cast<double>(results[i][j].draws) /
+                         EXPERIMENT_ROUNDS * 100) << "%)\n";
+
+            if (results[i][j].p1Wins > 0) {
+                std::cout << "  P1 Avg ships remaining: "
+                         << static_cast<double>(results[i][j].p1TotalShipsRemaining) /
+                            results[i][j].p1Wins << "\n";
+                std::cout << "  P1 Avg health remaining: "
+                         << static_cast<double>(results[i][j].p1TotalHealthRemaining) /
+                            results[i][j].p1Wins << "\n";
+            }
+
+            if (results[i][j].p2Wins > 0) {
+                std::cout << "  P2 Avg ships remaining: "
+                         << static_cast<double>(results[i][j].p2TotalShipsRemaining) /
+                            results[i][j].p2Wins << "\n";
+                std::cout << "  P2 Avg health remaining: "
+                         << static_cast<double>(results[i][j].p2TotalHealthRemaining) /
+                            results[i][j].p2Wins << "\n";
+            }
+
+            std::cout << "  Average rounds: "
+                     << static_cast<double>(results[i][j].totalRounds) /
+                        EXPERIMENT_ROUNDS << "\n";
+            std::cout << "  Average duration: "
+                     << results[i][j].totalDuration / EXPERIMENT_ROUNDS
+                     << " seconds\n\n";
+        }
+    }
+}
 
 int main() {
     std::cout << "Naval Battle Game Simulation\n";
     std::cout << "============================\n\n";
 
-    Game game;
-    game.run();
+    // 運行參數實驗
+    runParameterExperiment();
 
     return 0;
 }
