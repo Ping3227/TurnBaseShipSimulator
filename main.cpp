@@ -25,21 +25,21 @@ struct StrategyParams {
 
     StrategyParams(bool isFirstPlayer) {
         if (isFirstPlayer) {
-            healthWeight = 1.0;
-            missileWeight = 0.8;
-            blockWeight = 1.2;
-            targetWeight = -1.0;
-            enemyDistanceWeight = 0.5;
-            allyDistanceWeight = -0.3;
-            attackThreshold=0;
+            healthWeight = 0.582;
+            missileWeight =  1.095;
+            blockWeight =  -1.189;
+            targetWeight =0.603;
+            enemyDistanceWeight = -0.772;
+            allyDistanceWeight = 3.170;
+            attackThreshold=0.574;
         } else {
-            healthWeight = 1.2;
-            missileWeight = 0.9;
-            blockWeight = 1.0;
-            targetWeight = -0.8;
-            enemyDistanceWeight = 0.6;
-            allyDistanceWeight = -0.4;
-            attackThreshold=0;
+            healthWeight = 0.582;
+            missileWeight =  1.095;
+            blockWeight =  -1.189;
+            targetWeight =0.603;
+            enemyDistanceWeight = -0.772;
+            allyDistanceWeight = 3.170;
+            attackThreshold=0.574;
         }
     }
 
@@ -916,13 +916,7 @@ public:
                 newParams[i] = baseValue + (dist(rng) * 2 - 1) * variation;
 
 
-                if (i == 3 || i == 5) { // targetWeight 和 allyDistanceWeight
-                    newParams[i] = std::max(-2.0, std::min(0.0, newParams[i]));
-                } else if (i == 6) { // attackThreshold
-                    newParams[i] = std::max(0.0, std::min(5.0, newParams[i]));
-                } else {
-                    newParams[i] = std::max(0.0, std::min(2.0, newParams[i]));
-                }
+
             }
 
             return StrategyParams(
@@ -1030,17 +1024,17 @@ void runParameterExperiment() {
         else if (result.winner == 2) p2WinsInWindow++;
 
 
-        double p1Reward = (result.p1Ships * 15.0) +
-                         (result.p1Health * 2.0) +
+        double p1Reward = (result.p1Ships * 20.0) +
+                         (result.p1Health * 1.0) +
                          (result.winner == 1 ? 200.0 : -50.0) -
-                         (result.p2Ships * 20.0) -
-                         (result.p2Health * 3.0);
+                         (result.p2Ships * 40.0) -
+                         (result.p2Health * 1.5);
 
-        double p2Reward = (result.p2Ships * 15.0) +
-                         (result.p2Health * 2.0) +
+        double p2Reward = (result.p2Ships * 20.0) +
+                         (result.p2Health * 1.0) +
                          (result.winner == 2 ? 200.0 : -50.0) -
-                         (result.p1Ships * 20.0) -
-                         (result.p1Health * 3.0);
+                         (result.p1Ships * 40.0) -
+                         (result.p1Health * 1.5);
 
 
         if (result.p1Ships > result.p2Ships) p1Reward *= 1.2;
@@ -1083,11 +1077,11 @@ void runParameterExperiment() {
 void runDifferentStrategy() {
     const int EXPERIMENT_ROUNDS = 10;
     std::vector<std::pair<std::string, StrategyParams>> paramSets = {
-        {"Aggressive", StrategyParams(1.0, 1.2, 0.8, -0.5, 0.7, -0.2,0)},
-        {"Defensive", StrategyParams(1.2, 0.8, 1.2, -1.2, 0.4, -0.5,3)},
-        {"Balanced", StrategyParams(1.0, 1.0, 1.0, -1.0, 0.5, -0.3,1)},
-        {"RL_Player1", StrategyParams(1.126, 0.803, 1.053, -1.552, 0.518, -0.355,0.599)},
-        {"RL_Player2", StrategyParams(0.651, 1.271, 1.428, 0, 0.817, -0.352,0.541)}
+        {"Aggressive", StrategyParams(1.0, 1.0, 0.8, -0.5, 0.5, -0.5,0)}, // relative less block and  target weight
+        {"Defensive", StrategyParams(1.0, 1.0, 1.2, -1.5, 0.5, -0.5,2)}, // relative high block and target weight
+        {"Balanced", StrategyParams(1.0, 1.0, 1.0, -1.0, 0.5, -0.5,1)},  // normal
+        {"RL_Player1", StrategyParams(0.653,  1.095, -1.189, 0.603, -0.772, 3.170,0.574)},
+        {"RL_Player2", StrategyParams(1.226, 0.904, -0.882, 0.466,  -0.903,  3.218,0.793)}
     };
 
 
@@ -1168,7 +1162,7 @@ void runDifferentStrategy() {
         double avgP2Health = 0;
 
         for (size_t j = 0; j < paramSets.size(); ++j) {
-            if (i == j) continue;
+
 
 
             totalP1Games += EXPERIMENT_ROUNDS;
@@ -1207,7 +1201,7 @@ void runDifferentStrategy() {
 
     for (size_t i = 0; i < paramSets.size(); ++i) {
         for (size_t j = 0; j < paramSets.size(); ++j) {
-            if (i == j) continue;
+
 
             const auto& res = results[i][j];
             int totalGames = EXPERIMENT_ROUNDS;

@@ -1,0 +1,469 @@
+DCProjectTurnBaseShipSimulatorcmake-build-defaultTurnBaseShipSimulator.exe
+Naval Battle Game RL Training
+============================
+
+Testing P1Aggressive vs P2Aggressive...
+Testing P1Aggressive vs P2Defensive...
+Testing P1Aggressive vs P2Balanced...
+Testing P1Aggressive vs P2RL_Player1...
+Testing P1Aggressive vs P2RL_Player2...
+Testing P1Defensive vs P2Aggressive...
+Testing P1Defensive vs P2Defensive...
+Testing P1Defensive vs P2Balanced...
+Testing P1Defensive vs P2RL_Player1...
+Testing P1Defensive vs P2RL_Player2...
+Testing P1Balanced vs P2Aggressive...
+Testing P1Balanced vs P2Defensive...
+Testing P1Balanced vs P2Balanced...
+Testing P1Balanced vs P2RL_Player1...
+Testing P1Balanced vs P2RL_Player2...
+Testing P1RL_Player1 vs P2Aggressive...
+Testing P1RL_Player1 vs P2Defensive...
+Testing P1RL_Player1 vs P2Balanced...
+Testing P1RL_Player1 vs P2RL_Player1...
+Testing P1RL_Player1 vs P2RL_Player2...
+Testing P1RL_Player2 vs P2Aggressive...
+Testing P1RL_Player2 vs P2Defensive...
+Testing P1RL_Player2 vs P2Balanced...
+Testing P1RL_Player2 vs P2RL_Player1...
+Testing P1RL_Player2 vs P2RL_Player2...
+
+Overall Strategy Analysis
+========================
+
+
+Strategy Aggressive
+--------------------------------
+As Player 1
+  Win Rate 42.0%
+  Average Ships Remaining 5.8
+  Average Health Remaining 10.4
+As Player 2
+  Win Rate 26.0%
+  Average Ships Remaining 5.4
+  Average Health Remaining 8.2
+
+Strategy Defensive
+--------------------------------
+As Player 1
+  Win Rate 40.0%
+  Average Ships Remaining 5.8
+  Average Health Remaining 10.5
+As Player 2
+  Win Rate 36.0%
+  Average Ships Remaining 5.7
+  Average Health Remaining 9.1
+
+Strategy Balanced
+--------------------------------
+As Player 1
+  Win Rate 38.0%
+  Average Ships Remaining 5.6
+  Average Health Remaining 10.2
+As Player 2
+  Win Rate 36.0%
+  Average Ships Remaining 5.4
+  Average Health Remaining 8.5
+
+Strategy RL_Player1
+--------------------------------
+As Player 1
+  Win Rate 66.0%
+  Average Ships Remaining 6.2
+  Average Health Remaining 13.0
+As Player 2
+  Win Rate 64.0%
+  Average Ships Remaining 6.6
+  Average Health Remaining 12.3
+
+Strategy RL_Player2
+--------------------------------
+As Player 1
+  Win Rate 70.0%
+  Average Ships Remaining 6.3
+  Average Health Remaining 13.2
+As Player 2
+  Win Rate 64.0%
+  Average Ships Remaining 6.8
+  Average Health Remaining 12.7
+
+Detailed Matchup Statistics
+==========================
+
+
+Matchup Aggressive(P1) vs Aggressive(P2)
+----------------------------------------
+Player 1 (Aggressive)
+  Wins 5 (50.0%)
+  Average Ships 6.3
+  Average Health 11.9
+Player 2 (Aggressive)
+  Wins 4 (40.0%)
+  Average Ships 6.4
+  Average Health 10.3
+Match Statistics
+  Draws 1 (10.0%)
+  Average rounds 9.0
+  Average duration 1.0 seconds
+
+Matchup Aggressive(P1) vs Defensive(P2)
+----------------------------------------
+Player 1 (Aggressive)
+  Wins 5 (50.0%)
+  Average Ships 6.4
+  Average Health 12.1
+Player 2 (Defensive)
+  Wins 4 (40.0%)
+  Average Ships 6.1
+  Average Health 10.1
+Match Statistics
+  Draws 1 (10.0%)
+  Average rounds 9.0
+  Average duration 0.9 seconds
+
+Matchup Aggressive(P1) vs Balanced(P2)
+----------------------------------------
+Player 1 (Aggressive)
+  Wins 6 (60.0%)
+  Average Ships 6.5
+  Average Health 11.6
+Player 2 (Balanced)
+  Wins 4 (40.0%)
+  Average Ships 5.6
+  Average Health 10.1
+Match Statistics
+  Draws 0 (0.0%)
+  Average rounds 8.8
+  Average duration 0.8 seconds
+
+Matchup Aggressive(P1) vs RL_Player1(P2)
+----------------------------------------
+Player 1 (Aggressive)
+  Wins 3 (30.0%)
+  Average Ships 4.9
+  Average Health 8.6
+Player 2 (RL_Player1)
+  Wins 7 (70.0%)
+  Average Ships 6.2
+  Average Health 11.4
+Match Statistics
+  Draws 0 (0.0%)
+  Average rounds 9.0
+  Average duration 1.0 seconds
+
+Matchup Aggressive(P1) vs RL_Player2(P2)
+----------------------------------------
+Player 1 (Aggressive)
+  Wins 2 (20.0%)
+  Average Ships 4.8
+  Average Health 7.6
+Player 2 (RL_Player2)
+  Wins 8 (80.0%)
+  Average Ships 7.5
+  Average Health 14.2
+Match Statistics
+  Draws 0 (0.0%)
+  Average rounds 9.0
+  Average duration 1.1 seconds
+
+Matchup Defensive(P1) vs Aggressive(P2)
+----------------------------------------
+Player 1 (Defensive)
+  Wins 7 (70.0%)
+  Average Ships 6.4
+  Average Health 13.2
+Player 2 (Aggressive)
+  Wins 3 (30.0%)
+  Average Ships 5.8
+  Average Health 9.5
+Match Statistics
+  Draws 0 (0.0%)
+  Average rounds 9.0
+  Average duration 0.9 seconds
+
+Matchup Defensive(P1) vs Defensive(P2)
+----------------------------------------
+Player 1 (Defensive)
+  Wins 4 (40.0%)
+  Average Ships 5.9
+  Average Health 11.1
+Player 2 (Defensive)
+  Wins 6 (60.0%)
+  Average Ships 6.9
+  Average Health 11.7
+Match Statistics
+  Draws 0 (0.0%)
+  Average rounds 9.0
+  Average duration 1.0 seconds
+
+Matchup Defensive(P1) vs Balanced(P2)
+----------------------------------------
+Player 1 (Defensive)
+  Wins 6 (60.0%)
+  Average Ships 6.0
+  Average Health 10.6
+Player 2 (Balanced)
+  Wins 3 (30.0%)
+  Average Ships 4.9
+  Average Health 7.4
+Match Statistics
+  Draws 1 (10.0%)
+  Average rounds 8.7
+  Average duration 0.9 seconds
+
+Matchup Defensive(P1) vs RL_Player1(P2)
+----------------------------------------
+Player 1 (Defensive)
+  Wins 0 (0.0%)
+  Average Ships 5.2
+  Average Health 8.7
+Player 2 (RL_Player1)
+  Wins 9 (90.0%)
+  Average Ships 7.4
+  Average Health 14.0
+Match Statistics
+  Draws 1 (10.0%)
+  Average rounds 9.0
+  Average duration 1.1 seconds
+
+Matchup Defensive(P1) vs RL_Player2(P2)
+----------------------------------------
+Player 1 (Defensive)
+  Wins 3 (30.0%)
+  Average Ships 5.3
+  Average Health 9.1
+Player 2 (RL_Player2)
+  Wins 7 (70.0%)
+  Average Ships 6.7
+  Average Health 12.8
+Match Statistics
+  Draws 0 (0.0%)
+  Average rounds 9.0
+  Average duration 1.1 seconds
+
+Matchup Balanced(P1) vs Aggressive(P2)
+----------------------------------------
+Player 1 (Balanced)
+  Wins 4 (40.0%)
+  Average Ships 6.4
+  Average Health 12.7
+Player 2 (Aggressive)
+  Wins 5 (50.0%)
+  Average Ships 5.8
+  Average Health 9.5
+Match Statistics
+  Draws 1 (10.0%)
+  Average rounds 8.9
+  Average duration 0.9 seconds
+
+Matchup Balanced(P1) vs Defensive(P2)
+----------------------------------------
+Player 1 (Balanced)
+  Wins 5 (50.0%)
+  Average Ships 6.1
+  Average Health 12.0
+Player 2 (Defensive)
+  Wins 4 (40.0%)
+  Average Ships 5.8
+  Average Health 9.7
+Match Statistics
+  Draws 1 (10.0%)
+  Average rounds 9.0
+  Average duration 0.9 seconds
+
+Matchup Balanced(P1) vs Balanced(P2)
+----------------------------------------
+Player 1 (Balanced)
+  Wins 5 (50.0%)
+  Average Ships 5.3
+  Average Health 10.5
+Player 2 (Balanced)
+  Wins 5 (50.0%)
+  Average Ships 6.9
+  Average Health 12.2
+Match Statistics
+  Draws 0 (0.0%)
+  Average rounds 9.0
+  Average duration 0.9 seconds
+
+Matchup Balanced(P1) vs RL_Player1(P2)
+----------------------------------------
+Player 1 (Balanced)
+  Wins 3 (30.0%)
+  Average Ships 5.6
+  Average Health 8.6
+Player 2 (RL_Player1)
+  Wins 7 (70.0%)
+  Average Ships 6.2
+  Average Health 11.5
+Match Statistics
+  Draws 0 (0.0%)
+  Average rounds 9.0
+  Average duration 1.0 seconds
+
+Matchup Balanced(P1) vs RL_Player2(P2)
+----------------------------------------
+Player 1 (Balanced)
+  Wins 2 (20.0%)
+  Average Ships 4.5
+  Average Health 7.0
+Player 2 (RL_Player2)
+  Wins 8 (80.0%)
+  Average Ships 7.0
+  Average Health 12.9
+Match Statistics
+  Draws 0 (0.0%)
+  Average rounds 9.0
+  Average duration 1.1 seconds
+
+Matchup RL_Player1(P1) vs Aggressive(P2)
+----------------------------------------
+Player 1 (RL_Player1)
+  Wins 9 (90.0%)
+  Average Ships 6.3
+  Average Health 14.2
+Player 2 (Aggressive)
+  Wins 1 (10.0%)
+  Average Ships 4.9
+  Average Health 6.4
+Match Statistics
+  Draws 0 (0.0%)
+  Average rounds 9.0
+  Average duration 1.0 seconds
+
+Matchup RL_Player1(P1) vs Defensive(P2)
+----------------------------------------
+Player 1 (RL_Player1)
+  Wins 8 (80.0%)
+  Average Ships 6.1
+  Average Health 12.3
+Player 2 (Defensive)
+  Wins 2 (20.0%)
+  Average Ships 4.5
+  Average Health 6.6
+Match Statistics
+  Draws 0 (0.0%)
+  Average rounds 9.0
+  Average duration 0.9 seconds
+
+Matchup RL_Player1(P1) vs Balanced(P2)
+----------------------------------------
+Player 1 (RL_Player1)
+  Wins 6 (60.0%)
+  Average Ships 6.7
+  Average Health 14.2
+Player 2 (Balanced)
+  Wins 4 (40.0%)
+  Average Ships 4.8
+  Average Health 6.6
+Match Statistics
+  Draws 0 (0.0%)
+  Average rounds 9.0
+  Average duration 1.0 seconds
+
+Matchup RL_Player1(P1) vs RL_Player1(P2)
+----------------------------------------
+Player 1 (RL_Player1)
+  Wins 4 (40.0%)
+  Average Ships 6.1
+  Average Health 12.5
+Player 2 (RL_Player1)
+  Wins 4 (40.0%)
+  Average Ships 6.8
+  Average Health 12.4
+Match Statistics
+  Draws 2 (20.0%)
+  Average rounds 9.0
+  Average duration 1.2 seconds
+
+Matchup RL_Player1(P1) vs RL_Player2(P2)
+----------------------------------------
+Player 1 (RL_Player1)
+  Wins 6 (60.0%)
+  Average Ships 5.7
+  Average Health 12.0
+Player 2 (RL_Player2)
+  Wins 3 (30.0%)
+  Average Ships 6.2
+  Average Health 11.2
+Match Statistics
+  Draws 1 (10.0%)
+  Average rounds 9.0
+  Average duration 1.1 seconds
+
+Matchup RL_Player2(P1) vs Aggressive(P2)
+----------------------------------------
+Player 1 (RL_Player2)
+  Wins 10 (100.0%)
+  Average Ships 6.9
+  Average Health 14.9
+Player 2 (Aggressive)
+  Wins 0 (0.0%)
+  Average Ships 4.2
+  Average Health 5.3
+Match Statistics
+  Draws 0 (0.0%)
+  Average rounds 8.9
+  Average duration 0.9 seconds
+
+Matchup RL_Player2(P1) vs Defensive(P2)
+----------------------------------------
+Player 1 (RL_Player2)
+  Wins 8 (80.0%)
+  Average Ships 6.2
+  Average Health 12.6
+Player 2 (Defensive)
+  Wins 2 (20.0%)
+  Average Ships 5.0
+  Average Health 7.3
+Match Statistics
+  Draws 0 (0.0%)
+  Average rounds 9.0
+  Average duration 0.9 seconds
+
+Matchup RL_Player2(P1) vs Balanced(P2)
+----------------------------------------
+Player 1 (RL_Player2)
+  Wins 8 (80.0%)
+  Average Ships 6.0
+  Average Health 12.6
+Player 2 (Balanced)
+  Wins 2 (20.0%)
+  Average Ships 4.7
+  Average Health 6.4
+Match Statistics
+  Draws 0 (0.0%)
+  Average rounds 9.0
+  Average duration 0.9 seconds
+
+Matchup RL_Player2(P1) vs RL_Player1(P2)
+----------------------------------------
+Player 1 (RL_Player2)
+  Wins 5 (50.0%)
+  Average Ships 6.7
+  Average Health 14.2
+Player 2 (RL_Player1)
+  Wins 5 (50.0%)
+  Average Ships 6.6
+  Average Health 12.3
+Match Statistics
+  Draws 0 (0.0%)
+  Average rounds 9.0
+  Average duration 1.3 seconds
+
+Matchup RL_Player2(P1) vs RL_Player2(P2)
+----------------------------------------
+Player 1 (RL_Player2)
+  Wins 4 (40.0%)
+  Average Ships 5.6
+  Average Health 11.9
+Player 2 (RL_Player2)
+  Wins 6 (60.0%)
+  Average Ships 6.8
+  Average Health 12.2
+Match Statistics
+  Draws 0 (0.0%)
+  Average rounds 9.0
+  Average duration 1.2 seconds
+
+Process finished with exit code 0
