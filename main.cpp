@@ -5,6 +5,7 @@
 #include <iostream>
 #include <iomanip>
 #include <chrono>
+#include <map>
 
 // 常數定義
 const int MAP_SIZE = 256;
@@ -864,186 +865,223 @@ private:
     }
 };
 
-// 參數實驗函數
-void runParameterExperiment() {
-    const int EXPERIMENT_ROUNDS = 10;
-    std::vector<std::pair<std::string, StrategyParams>> paramSets = {
-        {"Aggressive", StrategyParams(1.0, 1.2, 0.8, -0.5, 0.7, -0.2,0)},
-        {"Defensive", StrategyParams(1.2, 0.8, 1.2, -1.2, 0.4, -0.5,3)},
-        {"Balanced", StrategyParams(1.0, 1.0, 1.0, -1.0, 0.5, -0.3,1)},
-        {"Missile-focused", StrategyParams(0.8, 1.5, 0.7, -0.8, 0.6, -0.2,1)},
-        {"Health-focused", StrategyParams(1.5, 0.7, 1.0, -1.0, 0.5, -0.4,1)}
-    };
+class QAgent {
+private:
+    struct State {
+        std::vector<double> params;
 
-    // 修改: 分別記錄作為P1和P2時的統計資料
-    struct DetailedStats {
-        int wins = 0;
-        int totalShips = 0;
-        int totalHealth = 0;
-        int totalRounds = 0;
-        double totalDuration = 0.0;
-        // 新增更詳細的統計
-        int totalMissilesUsed = 0;
-        int totalDamageDealt = 0;
-        int survivalRounds = 0;  // 存活回合數
-    };
-
-    struct ExperimentResult {
-        DetailedStats p1Stats;
-        DetailedStats p2Stats;
-        int draws = 0;
-    };
-
-    // 創建結果矩陣
-    std::vector<std::vector<ExperimentResult>> results(
-        paramSets.size(), std::vector<ExperimentResult>(paramSets.size()));
-
-    // 執行實驗並收集詳細資料
-    for (size_t i = 0; i < paramSets.size(); ++i) {
-        for (size_t j = 0; j < paramSets.size(); ++j) {
-
-
-            std::cout << "Testing P1:" << paramSets[i].first << " vs P2:"
-                     << paramSets[j].first << "...\n";
-
-            for (int k = 0; k < EXPERIMENT_ROUNDS; ++k) {
-                Game game(paramSets[i].second, paramSets[j].second);
-                auto result = game.run();
-
-                // 無論勝負都記錄雙方資料
-                results[i][j].p1Stats.totalShips += result.p1Ships;
-                results[i][j].p1Stats.totalHealth += result.p1Health;
-                results[i][j].p1Stats.totalRounds += result.rounds;
-                results[i][j].p1Stats.totalDuration += result.duration;
-
-                results[i][j].p2Stats.totalShips += result.p2Ships;
-                results[i][j].p2Stats.totalHealth += result.p2Health;
-                results[i][j].p2Stats.totalRounds += result.rounds;
-                results[i][j].p2Stats.totalDuration += result.duration;
-
-                if (result.winner == 1) {
-                    results[i][j].p1Stats.wins++;
-                } else if (result.winner == 2) {
-                    results[i][j].p2Stats.wins++;
-                } else {
-                    results[i][j].draws++;
+        bool operator<(const State& other) const {
+            for (size_t i = 0; i < params.size(); i++) {
+                if (std::abs(params[i] - other.params[i]) > 0.1) {
+                    return params[i] < other.params[i];
                 }
             }
+            return false;
+        }
+    };
+
+    std::map<State, double> qTable;
+    std::vector<double> currentBestParams;  // 新增：追踪當前最佳參數
+    double bestQValue;                      // 新增：追踪最佳Q值
+    double learningRate;
+    double discountFactor;
+    double explorationRate;
+    std::mt19937 rng;
+    std::string agentName;
+
+public:
+    QAgent(std::string name, double lr = 0.1, double gamma = 0.95, double epsilon = 0.3)
+        : agentName(name), learningRate(lr), discountFactor(gamma), explorationRate(epsilon),
+          bestQValue(-std::numeric_limits<double>::infinity()) {
+        std::random_device rd;
+        rng = std::mt19937(rd());
+        currentBestParams = std::vector<double>(7, 0.0);  // 初始化最佳參數
+    }
+
+    void printBestParameters() const {
+        std::cout << "\n" << agentName << " Best Parameters:\n";
+        std::cout << "Health Weight: " << std::fixed << std::setprecision(3)
+                 << currentBestParams[0] << "\n";
+        std::cout << "Missile Weight: " << currentBestParams[1] << "\n";
+        std::cout << "Block Weight: " << currentBestParams[2] << "\n";
+        std::cout << "Target Weight: " << currentBestParams[3] << "\n";
+        std::cout << "Enemy Distance Weight: " << currentBestParams[4] << "\n";
+        std::cout << "Ally Distance Weight: " << currentBestParams[5] << "\n";
+        std::cout << "Attack Threshold: " << currentBestParams[6] << "\n";
+        std::cout << "Q-Value: " << bestQValue << "\n";
+    }
+
+    StrategyParams getAction() {
+        std::uniform_real_distribution<double> dist(0.0, 1.0);
+
+        if (dist(rng) < explorationRate) {
+            // 更好的探索策略：基於當前最佳參數進行隨機擾動
+            std::vector<double> newParams;
+            if (!qTable.empty()) {
+                newParams = currentBestParams;
+                for (double& param : newParams) {
+                    param += dist(rng) * 0.4 - 0.2; // 在[-0.2, 0.2]範圍內擾動
+                }
+            } else {
+                // 如果是初始狀態，則完全隨機
+                newParams = {
+                    dist(rng) * 2.0,   // healthWeight
+                    dist(rng) * 2.0,   // missileWeight
+                    dist(rng) * 2.0,   // blockWeight
+                    -dist(rng) * 2.0,  // targetWeight
+                    dist(rng),         // enemyDistanceWeight
+                    -dist(rng),        // allyDistanceWeight
+                    dist(rng) * 5.0    // attackThreshold
+                };
+            }
+            return StrategyParams(
+                newParams[0], newParams[1], newParams[2],
+                newParams[3], newParams[4], newParams[5], newParams[6]
+            );
+        } else {
+            return StrategyParams(
+                currentBestParams[0], currentBestParams[1], currentBestParams[2],
+                currentBestParams[3], currentBestParams[4], currentBestParams[5],
+                currentBestParams[6]
+            );
         }
     }
 
-    // 輸出整體分析
-    std::cout << "\nOverall Strategy Analysis:\n";
-    std::cout << "========================\n\n";
+    void update(const StrategyParams& params, double reward) {
+        State state{std::vector<double>{
+            params.healthWeight,
+            params.missileWeight,
+            params.blockWeight,
+            params.targetWeight,
+            params.enemyDistanceWeight,
+            params.allyDistanceWeight,
+            params.attackThreshold
+        }};
 
-    for (size_t i = 0; i < paramSets.size(); ++i) {
-        std::cout << "\nStrategy: " << paramSets[i].first << "\n";
-        std::cout << "--------------------------------\n";
-
-        // 計算作為P1時的總體表現
-        int totalP1Games = 0;
-        int totalP1Wins = 0;
-        double avgP1Ships = 0;
-        double avgP1Health = 0;
-
-        // 計算作為P2時的總體表現
-        int totalP2Games = 0;
-        int totalP2Wins = 0;
-        double avgP2Ships = 0;
-        double avgP2Health = 0;
-
-        for (size_t j = 0; j < paramSets.size(); ++j) {
-            if (i == j) continue;
-
-            // 作為P1的統計
-            totalP1Games += EXPERIMENT_ROUNDS;
-            totalP1Wins += results[i][j].p1Stats.wins;
-            avgP1Ships += results[i][j].p1Stats.totalShips;
-            avgP1Health += results[i][j].p1Stats.totalHealth;
-
-            // 作為P2的統計
-            totalP2Games += EXPERIMENT_ROUNDS;
-            totalP2Wins += results[j][i].p2Stats.wins;
-            avgP2Ships += results[j][i].p2Stats.totalShips;
-            avgP2Health += results[j][i].p2Stats.totalHealth;
+        // 初始化Q值如果不存在
+        if (qTable.find(state) == qTable.end()) {
+            qTable[state] = reward;
         }
 
-        // 輸出作為P1的表現
-        std::cout << "As Player 1:\n";
-        std::cout << "  Win Rate: " << std::fixed << std::setprecision(1)
-                  << (static_cast<double>(totalP1Wins) / totalP1Games * 100) << "%\n";
-        std::cout << "  Average Ships Remaining: "
-                  << (avgP1Ships / totalP1Games) << "\n";
-        std::cout << "  Average Health Remaining: "
-                  << (avgP1Health / totalP1Games) << "\n";
+        // 更新Q值
+        qTable[state] = (1 - learningRate) * qTable[state] +
+                       learningRate * (reward + discountFactor * bestQValue);
 
-        // 輸出作為P2的表現
-        std::cout << "As Player 2:\n";
-        std::cout << "  Win Rate: " << std::fixed << std::setprecision(1)
-                  << (static_cast<double>(totalP2Wins) / totalP2Games * 100) << "%\n";
-        std::cout << "  Average Ships Remaining: "
-                  << (avgP2Ships / totalP2Games) << "\n";
-        std::cout << "  Average Health Remaining: "
-                  << (avgP2Health / totalP2Games) << "\n";
-    }
-
-    // 輸出詳細對戰統計
-    std::cout << "\nDetailed Matchup Statistics:\n";
-    std::cout << "==========================\n\n";
-
-    for (size_t i = 0; i < paramSets.size(); ++i) {
-        for (size_t j = 0; j < paramSets.size(); ++j) {
-            if (i == j) continue;
-
-            const auto& res = results[i][j];
-            int totalGames = EXPERIMENT_ROUNDS;
-
-            std::cout << "\nMatchup: " << paramSets[i].first
-                     << "(P1) vs " << paramSets[j].first << "(P2)\n";
-            std::cout << "----------------------------------------\n";
-
-            // Player 1 統計
-            std::cout << "Player 1 (" << paramSets[i].first << "):\n";
-            std::cout << "  Wins: " << res.p1Stats.wins << " ("
-                     << std::fixed << std::setprecision(1)
-                     << (static_cast<double>(res.p1Stats.wins) / totalGames * 100)
-                     << "%)\n";
-            std::cout << "  Average Ships: "
-                     << static_cast<double>(res.p1Stats.totalShips) / totalGames
-                     << "\n";
-            std::cout << "  Average Health: "
-                     << static_cast<double>(res.p1Stats.totalHealth) / totalGames
-                     << "\n";
-
-            // Player 2 統計
-            std::cout << "Player 2 (" << paramSets[j].first << "):\n";
-            std::cout << "  Wins: " << res.p2Stats.wins << " ("
-                     << std::fixed << std::setprecision(1)
-                     << (static_cast<double>(res.p2Stats.wins) / totalGames * 100)
-                     << "%)\n";
-            std::cout << "  Average Ships: "
-                     << static_cast<double>(res.p2Stats.totalShips) / totalGames
-                     << "\n";
-            std::cout << "  Average Health: "
-                     << static_cast<double>(res.p2Stats.totalHealth) / totalGames
-                     << "\n";
-
-            // 整體對戰統計
-            std::cout << "Match Statistics:\n";
-            std::cout << "  Draws: " << res.draws << " ("
-                     << (static_cast<double>(res.draws) / totalGames * 100)
-                     << "%)\n";
-            std::cout << "  Average rounds: "
-                     << static_cast<double>(res.p1Stats.totalRounds) / totalGames
-                     << "\n";
-            std::cout << "  Average duration: "
-                     << res.p1Stats.totalDuration / totalGames
-                     << " seconds\n";
+        // 更新最佳參數
+        if (qTable[state] > bestQValue) {
+            bestQValue = qTable[state];
+            currentBestParams = state.params;
         }
     }
+
+    void decay_exploration(double decay_rate = 0.995) {
+        explorationRate *= decay_rate;
+        if (explorationRate < 0.01) explorationRate = 0.01;
+    }
+
+    double getExplorationRate() const { return explorationRate; }
+};
+
+void runParameterExperiment() {
+    const int TRAINING_EPISODES = 1000;
+    const int LOG_INTERVAL = 50;
+    const int EVAL_INTERVAL = 10;  // 每10輪評估一次當前策略
+
+    QAgent p1Agent("Player 1", 0.1, 0.95, 0.3);
+    QAgent p2Agent("Player 2", 0.1, 0.95, 0.3);
+
+    int windowSize = LOG_INTERVAL;
+    int p1WinsInWindow = 0;
+    int p2WinsInWindow = 0;
+
+    std::cout << "Starting RL training for " << TRAINING_EPISODES << " episodes\n";
+
+    for (int episode = 0; episode < TRAINING_EPISODES; ++episode) {
+        std::cout<<"episode "<<episode<<std::endl;
+        // 獲取當前策略
+        auto p1Params = p1Agent.getAction();
+        auto p2Params = p2Agent.getAction();
+
+        // 執行遊戲
+        Game game(p1Params, p2Params);
+        auto result = game.run();
+
+        // 更新勝率統計
+        if (result.winner == 1) p1WinsInWindow++;
+        else if (result.winner == 2) p2WinsInWindow++;
+
+        // 計算更精確的獎勵
+        double p1Reward = result.p1Ships * 8.0 + result.p1Health * 1.0 -
+                         result.p2Ships * 10.0 - result.p2Health * 1.5;
+        if (result.winner == 1) p1Reward += 50.0;  // 勝利獎勵
+
+        double p2Reward = result.p2Ships * 8.0 + result.p2Health * 1.0 -
+                         result.p1Ships * 10.0 - result.p1Health * 1.5;
+        if (result.winner == 2) p2Reward += 50.0;  // 勝利獎勵
+
+        // 更新Q值
+        p1Agent.update(p1Params, p1Reward);
+        p2Agent.update(p2Params, p2Reward);
+
+        // 衰減探索率
+        p1Agent.decay_exploration(0.997);  // 降低衰減速率
+        p2Agent.decay_exploration(0.997);
+
+        // 定期輸出
+        if ((episode + 1) % LOG_INTERVAL == 0) {
+            double p1WinRate = static_cast<double>(p1WinsInWindow) / windowSize;
+            double p2WinRate = static_cast<double>(p2WinsInWindow) / windowSize;
+
+            std::cout << "\n========== Episode " << episode + 1 << "/"
+                     << TRAINING_EPISODES << " ==========\n";
+            std::cout << "Exploration Rates - P1: " << std::fixed
+                     << std::setprecision(3) << p1Agent.getExplorationRate()
+                     << ", P2: " << p2Agent.getExplorationRate() << "\n";
+            std::cout << "Recent Win Rates - P1: " << (p1WinRate * 100)
+                     << "%, P2: " << (p2WinRate * 100) << "%\n";
+
+            p1Agent.printBestParameters();
+            p2Agent.printBestParameters();
+
+            p1WinsInWindow = 0;
+            p2WinsInWindow = 0;
+        }
+    }
+
+    std::cout << "\n===== Training Completed =====\n";
+    std::cout << "Final Parameters:\n";
+    p1Agent.printBestParameters();
+    p2Agent.printBestParameters();
+
+    // 進行展示對戰
+    std::cout << "\nRunning demonstration games...\n";
+
+    auto bestP1Params = p1Agent.getAction();
+    auto bestP2Params = p2Agent.getAction();
+
+    int demoGames = 10;
+    int p1Wins = 0, p2Wins = 0, draws = 0;
+
+    for (int i = 0; i < demoGames; ++i) {
+        Game game(bestP1Params, bestP2Params);
+        auto result = game.run();
+
+        if (result.winner == 1) p1Wins++;
+        else if (result.winner == 2) p2Wins++;
+        else draws++;
+    }
+
+    std::cout << "\nDemonstration Results (" << demoGames << " games):\n";
+    std::cout << "Player 1 Wins: " << p1Wins << " ("
+              << (p1Wins * 100.0 / demoGames) << "%)\n";
+    std::cout << "Player 2 Wins: " << p2Wins << " ("
+              << (p2Wins * 100.0 / demoGames) << "%)\n";
+    std::cout << "Draws: " << draws << " ("
+              << (draws * 100.0 / demoGames) << "%)\n";
 }
+
 int main() {
-    std::cout << "Naval Battle Game Simulation\n";
+    std::cout << "Naval Battle Game RL Training\n";
     std::cout << "============================\n\n";
 
     runParameterExperiment();

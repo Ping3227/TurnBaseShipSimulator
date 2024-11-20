@@ -1,0 +1,11 @@
+# ninja log v6
+1837	2549	7537851442950477	TurnBaseShipSimulator.exe	6e4cf4737530fe3
+191	1837	7537851426491240	CMakeFiles/TurnBaseShipSimulator.dir/main.cpp.obj	7641432c596cbaff
+3	1844	7537854292688962	CMakeFiles/TurnBaseShipSimulator.dir/main.cpp.obj	e1e679857000e881
+1846	4786	7537854311121395	TurnBaseShipSimulator.exe	c2923fb29dcb009b
+8	1818	7537855400707521	CMakeFiles/TurnBaseShipSimulator.dir/main.cpp.obj	e1e679857000e881
+1819	3295	7537855418816088	TurnBaseShipSimulator.exe	c2923fb29dcb009b
+8	2006	7537862722195571	CMakeFiles/TurnBaseShipSimulator.dir/main.cpp.obj	e1e679857000e881
+2006	4173	7537862742176010	TurnBaseShipSimulator.exe	c2923fb29dcb009b
+7	1764	7537865799550674	CMakeFiles/TurnBaseShipSimulator.dir/main.cpp.obj	e1e679857000e881
+1765	3237	7537865817131868	TurnBaseShipSimulator.exe	c2923fb29dcb009b
