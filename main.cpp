@@ -7,13 +7,12 @@
 #include <chrono>
 #include <map>
 
-// 常數定義
+
 const int MAP_SIZE = 256;
 const int MAX_ROUNDS = 100;
 const bool VERBOSE_OUTPUT = false;
-const double EPSILON = 1e-6;  // 用於浮點數比較
+const double EPSILON = 1e-6;
 
-// 玩家策略參數結構體
 struct StrategyParams {
     double healthWeight;
     double missileWeight;
@@ -50,7 +49,6 @@ struct StrategyParams {
 };
 
 
-// 座標結構
 struct Position {
     int x, y;
     Position(int _x = 0, int _y = 0) : x(_x), y(_y) {}
@@ -63,7 +61,7 @@ struct Position {
         return std::sqrt(std::pow(x - other.x, 2) + std::pow(y - other.y, 2));
     }
 
-    // 新增: 向量運算相關運算子
+
     Position operator+(const Position& other) const {
         return Position(x + other.x, y + other.y);
     }
@@ -85,7 +83,6 @@ struct Position {
     }
 };
 
-// 射線結構
 struct Ray {
     Position origin;
     Position direction;
@@ -93,12 +90,11 @@ struct Ray {
     Ray(const Position& from, const Position& to)
         : origin(from), direction(to - from) {}
 
-    // 修改: 計算點到射線的距離和相對位置
     std::pair<double, double> distanceAndProjection(const Position& point) const {
         Position v = point - origin;
         double t = v.dot(direction) / direction.dot(direction);
 
-        // 投影點到目標點的距離
+
         Position projection = origin + direction * t;
         double distance = point.distanceTo(projection);
 
@@ -107,7 +103,7 @@ struct Ray {
 };
 
 
-// 飛彈類別
+
 class Missile {
 public:
     enum Type { CROSS, SQUARE };
@@ -121,7 +117,6 @@ public:
     std::vector<Position> getDamageArea(const Position& target) const {
         std::vector<Position> area;
         if (type == CROSS) {
-            // 十字範圍
             const int dx[] = {0, 1, 0, -1, 0};
             const int dy[] = {0, 0, 1, 0, -1};
             for (int i = 0; i < 5; ++i) {
@@ -131,7 +126,6 @@ public:
                 }
             }
         } else {
-            // 九宮格範圍
             for (int dx = -1; dx <= 1; ++dx) {
                 for (int dy = -1; dy <= 1; ++dy) {
                     Position pos(target.x + dx, target.y + dy);
@@ -152,7 +146,6 @@ private:
     }
 };
 
-// 船艦類別
 class Ship {
 public:
     Ship(int maxHp, int moveRange, int crossMissiles, int squareMissiles)
@@ -169,7 +162,6 @@ public:
 
     void setPosition(const Position& pos) {
         position = pos;
-        // 位置改變時清除快取
         cachedMoves.clear();
     }
 
@@ -193,7 +185,7 @@ public:
     }
 
     std::vector<Position> getPossibleMoves() {
-        // 每次都重新計算可能的移動位置
+
         std::vector<Position> moves;
         for (int dx = -moveRange; dx <= moveRange; ++dx) {
             for (int dy = -moveRange; dy <= moveRange; ++dy) {
@@ -222,7 +214,7 @@ private:
     }
 };
 
-// 玩家類別
+
 class Player {
 public:
     Player(bool isFirst, const StrategyParams& customParams = StrategyParams(true))
@@ -305,7 +297,7 @@ public:
         Missile::Type missileType;
         double score;
         std::string explanation;
-        std::vector<Position> potentialTargets;  // 新增: 記錄射線上的目標
+        std::vector<Position> potentialTargets;
     };
 
     AttackDecision chooseAttackPosition(Ship& ship, const Player& enemy) {
@@ -321,7 +313,7 @@ public:
     }
 
     if (ship.getCrossMissiles() > 0 || ship.getSquareMissiles() > 0) {
-        // 收集所有敵人的可能位置
+
         std::vector<std::pair<Position, double>> allEnemyPositions;
         for (const Ship& enemyShip : enemy.getShips()) {
             if (enemyShip.isDead()) continue;
@@ -336,14 +328,14 @@ public:
             }
         }
 
-        // 對每個可能的敵人位置發射射線
+        // evaluate all potential attack position
         for (const auto& [target, baseValue] : allEnemyPositions) {
             Ray ray(ship.getPosition(), target);
             bool pathBlocked = false;
             std::vector<Position> targetsOnRay;
             double totalScore = 0;
 
-            // 檢查射線上的所有敵方可能位置
+            // check the potential for each attack choice
             for (const auto& [enemyPos, enemyValue] : allEnemyPositions) {
                 auto [distance, t] = ray.distanceAndProjection(enemyPos);
                 if (t > EPSILON && distance < EPSILON) {
@@ -352,7 +344,7 @@ public:
                 }
             }
 
-            // 檢查是否有友軍阻擋
+            // check if the path is blocked by allies
             for (const Ship& allyShip : ships) {
                 if (!allyShip.isDead() && &allyShip != &ship) {
                     auto [distance, t] = ray.distanceAndProjection(
@@ -453,7 +445,7 @@ private:
     double score = 0;
     explanation = "";
 
-    // 計算與敵人的距離得分
+
     double enemyDistanceScore = 0;
     for (const Ship& enemyShip : enemy.getShips()) {
         if (!enemyShip.isDead()) {
@@ -463,7 +455,7 @@ private:
     }
     score += enemyDistanceScore;
 
-    // 計算與隊友的距離得分
+
     double allyDistanceScore = 0;
     for (const Ship& allyShip : ships) {
         if (!allyShip.isDead() && &allyShip != &ship) {
@@ -473,7 +465,7 @@ private:
     }
     score += allyDistanceScore;
 
-    // 計算格檔和被瞄準得分
+
     int blockCount = 0, targetCount = 0;
     for (const Ship& enemyShip : enemy.getShips()) {
         if (!enemyShip.isDead()) {
@@ -487,13 +479,12 @@ private:
                 }
             }
 
-            // 檢查是否被直接瞄準
+            // check whether others block enemy ship
             Ray ray(enemyShip.getPosition(), move);
             bool isTarget = true;
             auto [distance, t] = ray.distanceAndProjection(move);
             if (distance < EPSILON && t > EPSILON) {
-                // 檢查是否有其他船隻（包括敵人和隊友）擋住射線
-                // 檢查敵方船隻
+                // enemy blocks
                 for (const Ship& otherShip : enemy.getShips()) {
                     if (!otherShip.isDead() && &otherShip != &enemyShip) {
                         auto [blockDist, blockT] =
@@ -505,7 +496,7 @@ private:
                     }
                 }
 
-                // 檢查友方船隻
+                // allies block
                 if (isTarget) {
                     for (const Ship& allyShip : ships) {
                         if (!allyShip.isDead() && &allyShip != &ship) {
@@ -538,7 +529,6 @@ private:
         Missile missile(missileType);
         std::vector<Position> damageArea = missile.getDamageArea(target);
 
-        // 計算可能傷害到的敵人價值
         double potentialDamage = 0;
         for (const Ship& enemyShip : enemy.getShips()) {
             if (!enemyShip.isDead()) {
@@ -559,7 +549,7 @@ private:
 
         score += potentialDamage;
 
-        // 檢查是否會誤傷隊友
+        // check if the attack is possibly blocked by allies
         for (const Ship& allyShip : ships) {
             if (!allyShip.isDead()) {
                 for (const Position& pos : damageArea) {
@@ -621,7 +611,7 @@ public:
                 std::cout << "Phase: Player 1 choosing attack positions\n";
             }
 
-            // 玩家1攻擊階段
+            // player 1 attack phase
             std::vector<std::tuple<Position, Missile::Type, Ship*>> p1Attacks;
             for (Ship& ship : const_cast<std::vector<Ship>&>(player1.getShips())) {
                 if (!ship.isDead()) {
@@ -634,7 +624,7 @@ public:
                 }
             }
 
-            // 玩家2移動階段
+            // player 2 move phase
             if (VERBOSE_OUTPUT) {
                 std::cout << "Phase: Player 2 moving ships\n";
             }
@@ -647,7 +637,7 @@ public:
             updateMap();
             if (VERBOSE_OUTPUT) printStatus();
 
-            // 玩家1攻擊觸發
+            // player 1 attack trigger phase
             if (VERBOSE_OUTPUT) {
                 std::cout << "Phase: Player 1 attacks triggering\n";
             }
@@ -661,7 +651,7 @@ public:
 
             if (isGameOver()) break;
 
-            // 玩家2攻擊階段
+            // player 2 attack phase
             if (VERBOSE_OUTPUT) {
                 std::cout << "Phase: Player 2 choosing attack positions\n";
             }
@@ -677,7 +667,7 @@ public:
                 }
             }
 
-            // 玩家1移動階段
+            // player 1 move phase
             if (VERBOSE_OUTPUT) {
                 std::cout << "Phase: Player 1 moving ships\n";
             }
@@ -690,7 +680,7 @@ public:
             updateMap();
             if (VERBOSE_OUTPUT) printStatus();
 
-            // 玩家2攻擊觸發
+            // player 2 attack trigger phase
             if (VERBOSE_OUTPUT) {
                 std::cout << "Phase: Player 2 attacks triggering\n";
             }
@@ -872,7 +862,6 @@ private:
 
         bool operator<(const State& other) const {
             for (size_t i = 0; i < params.size(); i++) {
-                // 將精度限制改小，允許更細微的變化
                 if (std::abs(params[i] - other.params[i]) > 0.01) {
                     return params[i] < other.params[i];
                 }
@@ -890,7 +879,7 @@ private:
     std::mt19937 rng;
     std::string agentName;
     bool isFirstPlayer;
-    int updateCount;  // 新增：追踪更新次數
+    int updateCount;
 
 public:
     QAgent(std::string name, bool isFirst, double lr = 0.1, double gamma = 0.95, double epsilon = 0.3)
@@ -899,7 +888,6 @@ public:
         std::random_device rd;
         rng = std::mt19937(rd());
 
-        // 使用預設策略初始化最佳參數
         StrategyParams initial(isFirst);
         currentBestParams = {
             initial.healthWeight,
@@ -912,7 +900,6 @@ public:
         };
         bestQValue = 0.0;
 
-        // 將初始參數加入Q表
         State initialState{currentBestParams};
         qTable[initialState] = bestQValue;
     }
@@ -921,16 +908,14 @@ public:
         std::uniform_real_distribution<double> dist(0.0, 1.0);
 
         if (dist(rng) < explorationRate) {
-            // 生成新的參數組合
             std::vector<double> newParams(7);
 
-            // 每個參數都在當前最佳值的基礎上進行變化
             for (size_t i = 0; i < 7; i++) {
                 double baseValue = currentBestParams[i];
-                double variation = (i == 3 || i == 5) ? 0.4 : 0.4; // 對負值參數特殊處理
+                double variation = (i == 3 || i == 5) ? 0.4 : 0.4;
                 newParams[i] = baseValue + (dist(rng) * 2 - 1) * variation;
 
-                // 確保參數在合理範圍內
+
                 if (i == 3 || i == 5) { // targetWeight 和 allyDistanceWeight
                     newParams[i] = std::max(-2.0, std::min(0.0, newParams[i]));
                 } else if (i == 6) { // attackThreshold
@@ -964,7 +949,7 @@ public:
             params.attackThreshold
         }};
 
-        // 更新Q值
+
         if (qTable.find(state) == qTable.end()) {
             qTable[state] = reward;
         } else {
@@ -972,7 +957,7 @@ public:
                            learningRate * reward;
         }
 
-        // 如果當前Q值更好，更新最佳參數
+
         if (qTable[state] > bestQValue) {
             bestQValue = qTable[state];
             currentBestParams = state.params;
@@ -984,7 +969,7 @@ public:
         }
     }
 
-    // 新增：輸出當前狀態的詳細信息
+
     void printCurrentState(const State& state) const {
         std::cout << "Parameters:\n";
         std::cout << "Health Weight: " << std::fixed << std::setprecision(3)
@@ -1044,20 +1029,20 @@ void runParameterExperiment() {
         if (result.winner == 1) p1WinsInWindow++;
         else if (result.winner == 2) p2WinsInWindow++;
 
-        // 計算獎勵，增加差異性
-        double p1Reward = (result.p1Ships * 20.0) +            // 存活船隻
-                         (result.p1Health * 5.0) +             // 剩餘血量
-                         (result.winner == 1 ? 200.0 : -50.0) - // 勝負結果
-                         (result.p2Ships * 15.0) -            // 敵方存活
-                         (result.p2Health * 3.0);             // 敵方血量
 
-        double p2Reward = (result.p2Ships * 20.0) +
-                         (result.p2Health * 5.0) +
+        double p1Reward = (result.p1Ships * 15.0) +
+                         (result.p1Health * 2.0) +
+                         (result.winner == 1 ? 200.0 : -50.0) -
+                         (result.p2Ships * 20.0) -
+                         (result.p2Health * 3.0);
+
+        double p2Reward = (result.p2Ships * 15.0) +
+                         (result.p2Health * 2.0) +
                          (result.winner == 2 ? 200.0 : -50.0) -
-                         (result.p1Ships * 15.0) -
+                         (result.p1Ships * 20.0) -
                          (result.p1Health * 3.0);
 
-        // 根據戰況調整獎勵
+
         if (result.p1Ships > result.p2Ships) p1Reward *= 1.2;
         if (result.p2Ships > result.p1Ships) p2Reward *= 1.2;
 
@@ -1090,18 +1075,192 @@ void runParameterExperiment() {
         }
     }
 
-    // 輸出最終結果
     std::cout << "\n===== Training Complete =====\n";
     std::cout << "\nFinal Parameters:\n";
     p1Agent.printBestParameters();
     p2Agent.printBestParameters();
 }
+void runDifferentStrategy() {
+    const int EXPERIMENT_ROUNDS = 10;
+    std::vector<std::pair<std::string, StrategyParams>> paramSets = {
+        {"Aggressive", StrategyParams(1.0, 1.2, 0.8, -0.5, 0.7, -0.2,0)},
+        {"Defensive", StrategyParams(1.2, 0.8, 1.2, -1.2, 0.4, -0.5,3)},
+        {"Balanced", StrategyParams(1.0, 1.0, 1.0, -1.0, 0.5, -0.3,1)},
+        {"RL_Player1", StrategyParams(1.126, 0.803, 1.053, -1.552, 0.518, -0.355,0.599)},
+        {"RL_Player2", StrategyParams(0.651, 1.271, 1.428, 0, 0.817, -0.352,0.541)}
+    };
 
+
+    struct DetailedStats {
+        int wins = 0;
+        int totalShips = 0;
+        int totalHealth = 0;
+        int totalRounds = 0;
+        double totalDuration = 0.0;
+
+        int totalMissilesUsed = 0;
+        int totalDamageDealt = 0;
+        int survivalRounds = 0;
+    };
+
+    struct ExperimentResult {
+        DetailedStats p1Stats;
+        DetailedStats p2Stats;
+        int draws = 0;
+    };
+
+
+    std::vector<std::vector<ExperimentResult>> results(
+        paramSets.size(), std::vector<ExperimentResult>(paramSets.size()));
+
+
+    for (size_t i = 0; i < paramSets.size(); ++i) {
+        for (size_t j = 0; j < paramSets.size(); ++j) {
+
+
+            std::cout << "Testing P1:" << paramSets[i].first << " vs P2:"
+                     << paramSets[j].first << "...\n";
+
+            for (int k = 0; k < EXPERIMENT_ROUNDS; ++k) {
+                Game game(paramSets[i].second, paramSets[j].second);
+                auto result = game.run();
+
+
+                results[i][j].p1Stats.totalShips += result.p1Ships;
+                results[i][j].p1Stats.totalHealth += result.p1Health;
+                results[i][j].p1Stats.totalRounds += result.rounds;
+                results[i][j].p1Stats.totalDuration += result.duration;
+
+                results[i][j].p2Stats.totalShips += result.p2Ships;
+                results[i][j].p2Stats.totalHealth += result.p2Health;
+                results[i][j].p2Stats.totalRounds += result.rounds;
+                results[i][j].p2Stats.totalDuration += result.duration;
+
+                if (result.winner == 1) {
+                    results[i][j].p1Stats.wins++;
+                } else if (result.winner == 2) {
+                    results[i][j].p2Stats.wins++;
+                } else {
+                    results[i][j].draws++;
+                }
+            }
+        }
+    }
+
+
+    std::cout << "\nOverall Strategy Analysis:\n";
+    std::cout << "========================\n\n";
+
+    for (size_t i = 0; i < paramSets.size(); ++i) {
+        std::cout << "\nStrategy: " << paramSets[i].first << "\n";
+        std::cout << "--------------------------------\n";
+
+
+        int totalP1Games = 0;
+        int totalP1Wins = 0;
+        double avgP1Ships = 0;
+        double avgP1Health = 0;
+
+
+        int totalP2Games = 0;
+        int totalP2Wins = 0;
+        double avgP2Ships = 0;
+        double avgP2Health = 0;
+
+        for (size_t j = 0; j < paramSets.size(); ++j) {
+            if (i == j) continue;
+
+
+            totalP1Games += EXPERIMENT_ROUNDS;
+            totalP1Wins += results[i][j].p1Stats.wins;
+            avgP1Ships += results[i][j].p1Stats.totalShips;
+            avgP1Health += results[i][j].p1Stats.totalHealth;
+
+
+            totalP2Games += EXPERIMENT_ROUNDS;
+            totalP2Wins += results[j][i].p2Stats.wins;
+            avgP2Ships += results[j][i].p2Stats.totalShips;
+            avgP2Health += results[j][i].p2Stats.totalHealth;
+        }
+
+
+        std::cout << "As Player 1:\n";
+        std::cout << "  Win Rate: " << std::fixed << std::setprecision(1)
+                  << (static_cast<double>(totalP1Wins) / totalP1Games * 100) << "%\n";
+        std::cout << "  Average Ships Remaining: "
+                  << (avgP1Ships / totalP1Games) << "\n";
+        std::cout << "  Average Health Remaining: "
+                  << (avgP1Health / totalP1Games) << "\n";
+
+
+        std::cout << "As Player 2:\n";
+        std::cout << "  Win Rate: " << std::fixed << std::setprecision(1)
+                  << (static_cast<double>(totalP2Wins) / totalP2Games * 100) << "%\n";
+        std::cout << "  Average Ships Remaining: "
+                  << (avgP2Ships / totalP2Games) << "\n";
+        std::cout << "  Average Health Remaining: "
+                  << (avgP2Health / totalP2Games) << "\n";
+    }
+
+    std::cout << "\nDetailed Matchup Statistics:\n";
+    std::cout << "==========================\n\n";
+
+    for (size_t i = 0; i < paramSets.size(); ++i) {
+        for (size_t j = 0; j < paramSets.size(); ++j) {
+            if (i == j) continue;
+
+            const auto& res = results[i][j];
+            int totalGames = EXPERIMENT_ROUNDS;
+
+            std::cout << "\nMatchup: " << paramSets[i].first
+                     << "(P1) vs " << paramSets[j].first << "(P2)\n";
+            std::cout << "----------------------------------------\n";
+
+            // Player 1
+            std::cout << "Player 1 (" << paramSets[i].first << "):\n";
+            std::cout << "  Wins: " << res.p1Stats.wins << " ("
+                     << std::fixed << std::setprecision(1)
+                     << (static_cast<double>(res.p1Stats.wins) / totalGames * 100)
+                     << "%)\n";
+            std::cout << "  Average Ships: "
+                     << static_cast<double>(res.p1Stats.totalShips) / totalGames
+                     << "\n";
+            std::cout << "  Average Health: "
+                     << static_cast<double>(res.p1Stats.totalHealth) / totalGames
+                     << "\n";
+
+            // player 2
+            std::cout << "Player 2 (" << paramSets[j].first << "):\n";
+            std::cout << "  Wins: " << res.p2Stats.wins << " ("
+                     << std::fixed << std::setprecision(1)
+                     << (static_cast<double>(res.p2Stats.wins) / totalGames * 100)
+                     << "%)\n";
+            std::cout << "  Average Ships: "
+                     << static_cast<double>(res.p2Stats.totalShips) / totalGames
+                     << "\n";
+            std::cout << "  Average Health: "
+                     << static_cast<double>(res.p2Stats.totalHealth) / totalGames
+                     << "\n";
+
+            // overall
+            std::cout << "Match Statistics:\n";
+            std::cout << "  Draws: " << res.draws << " ("
+                     << (static_cast<double>(res.draws) / totalGames * 100)
+                     << "%)\n";
+            std::cout << "  Average rounds: "
+                     << static_cast<double>(res.p1Stats.totalRounds) / totalGames
+                     << "\n";
+            std::cout << "  Average duration: "
+                     << res.p1Stats.totalDuration / totalGames
+                     << " seconds\n";
+        }
+    }
+}
 int main() {
     std::cout << "Naval Battle Game RL Training\n";
     std::cout << "============================\n\n";
 
-    runParameterExperiment();
-
+    //runParameterExperiment();
+    runDifferentStrategy();
     return 0;
 }

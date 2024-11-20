@@ -1,0 +1,717 @@
+Naval Battle Game RL Training
+============================
+
+Starting RL training for 1000 episodes
+
+Player 1 - Update #1:
+New Q-Value: 25.68
+Parameters:
+Health Weight: 1.000
+Missile Weight: 0.800
+Block Weight: 1.200
+Target Weight: -1.000
+Enemy Distance Weight: 0.500
+Ally Distance Weight: -0.300
+Attack Threshold: 0.000
+
+Player 1 - Update #2:
+New Q-Value: 161.000
+Parameters:
+Health Weight: 1.053
+Missile Weight: 0.611
+Block Weight: 1.419
+Target Weight: -1.185
+Enemy Distance Weight: 0.436
+Ally Distance Weight: 0.000
+Attack Threshold: 0.244
+
+Player 1 - Update #3:
+New Q-Value: 169.260
+Parameters:
+Health Weight: 1.053
+Missile Weight: 0.611
+Block Weight: 1.419
+Target Weight: -1.185
+Enemy Distance Weight: 0.436
+Ally Distance Weight: 0.000
+Attack Threshold: 0.244
+
+Player 2 - Update #1:
+New Q-Value: 2.859
+Parameters:
+Health Weight: 1.200
+Missile Weight: 0.900
+Block Weight: 1.000
+Target Weight: -0.800
+Enemy Distance Weight: 0.600
+Ally Distance Weight: -0.400
+Attack Threshold: 0.000
+
+Player 1 - Update #4:
+New Q-Value: 224.400
+Parameters:
+Health Weight: 1.170
+Missile Weight: 0.538
+Block Weight: 1.619
+Target Weight: -1.182
+Enemy Distance Weight: 0.214
+Ally Distance Weight: 0.000
+Attack Threshold: 0.638
+
+Player 1 - Update #5:
+New Q-Value: 230.520
+Parameters:
+Health Weight: 1.170
+Missile Weight: 0.538
+Block Weight: 1.619
+Target Weight: -1.182
+Enemy Distance Weight: 0.214
+Ally Distance Weight: 0.000
+Attack Threshold: 0.638
+
+Player 2 - Update #2:
+New Q-Value: 270.000
+Parameters:
+Health Weight: 1.139
+Missile Weight: 1.000
+Block Weight: 1.329
+Target Weight: -0.432
+Enemy Distance Weight: 0.254
+Ally Distance Weight: -0.057
+Attack Threshold: 0.281
+
+Player 2 - Update #3:
+New Q-Value: 286.800
+Parameters:
+Health Weight: 0.741
+Missile Weight: 0.908
+Block Weight: 1.433
+Target Weight: -0.076
+Enemy Distance Weight: 0.330
+Ally Distance Weight: -0.438
+Attack Threshold: 0.588
+
+Player 1 - Update #6:
+New Q-Value: 250.800
+Parameters:
+Health Weight: 1.152
+Missile Weight: 0.845
+Block Weight: 1.553
+Target Weight: -1.099
+Enemy Distance Weight: 0.418
+Ally Distance Weight: -0.273
+Attack Threshold: 0.614
+
+Player 1 - Update #7:
+New Q-Value: 253.560
+Parameters:
+Health Weight: 1.152
+Missile Weight: 0.845
+Block Weight: 1.553
+Target Weight: -1.099
+Enemy Distance Weight: 0.418
+Ally Distance Weight: -0.273
+Attack Threshold: 0.614
+
+Player 1 - Update #8:
+New Q-Value: 372.000
+Parameters:
+Health Weight: 1.411
+Missile Weight: 0.754
+Block Weight: 1.445
+Target Weight: -1.207
+Enemy Distance Weight: 0.179
+Ally Distance Weight: -0.442
+Attack Threshold: 0.370
+
+========== Episode 50/1000 ==========
+Exploration Rates - P1: 0.258, P2: 0.258
+Recent Win Rates - P1: 60.000%, P2: 38.000%
+
+Player 1 Best Parameters:
+Health Weight: 1.411
+Missile Weight: 0.754
+Block Weight: 1.445
+Target Weight: -1.207
+Enemy Distance Weight: 0.179
+Ally Distance Weight: -0.442
+Attack Threshold: 0.370
+Q-Value: 372.000
+Total Updates: 8
+
+Player 2 Best Parameters:
+Health Weight: 0.741
+Missile Weight: 0.908
+Block Weight: 1.433
+Target Weight: -0.076
+Enemy Distance Weight: 0.330
+Ally Distance Weight: -0.438
+Attack Threshold: 0.588
+Q-Value: 286.800
+Total Updates: 3
+
+Player 2 - Update #4:
+New Q-Value: 321.600
+Parameters:
+Health Weight: 0.568
+Missile Weight: 0.995
+Block Weight: 1.737
+Target Weight: -0.063
+Enemy Distance Weight: 0.690
+Ally Distance Weight: -0.134
+Attack Threshold: 0.657
+
+========== Episode 100/1000 ==========
+Exploration Rates - P1: 0.222, P2: 0.222
+Recent Win Rates - P1: 48.000%, P2: 52.000%
+
+Player 1 Best Parameters:
+Health Weight: 1.411
+Missile Weight: 0.754
+Block Weight: 1.445
+Target Weight: -1.207
+Enemy Distance Weight: 0.179
+Ally Distance Weight: -0.442
+Attack Threshold: 0.370
+Q-Value: 372.000
+Total Updates: 8
+
+Player 2 Best Parameters:
+Health Weight: 0.568
+Missile Weight: 0.995
+Block Weight: 1.737
+Target Weight: -0.063
+Enemy Distance Weight: 0.690
+Ally Distance Weight: -0.134
+Attack Threshold: 0.657
+Q-Value: 321.600
+Total Updates: 4
+
+========== Episode 150/1000 ==========
+Exploration Rates - P1: 0.191, P2: 0.191
+Recent Win Rates - P1: 44.000%, P2: 56.000%
+
+Player 1 Best Parameters:
+Health Weight: 1.411
+Missile Weight: 0.754
+Block Weight: 1.445
+Target Weight: -1.207
+Enemy Distance Weight: 0.179
+Ally Distance Weight: -0.442
+Attack Threshold: 0.370
+Q-Value: 372.000
+Total Updates: 8
+
+Player 2 Best Parameters:
+Health Weight: 0.568
+Missile Weight: 0.995
+Block Weight: 1.737
+Target Weight: -0.063
+Enemy Distance Weight: 0.690
+Ally Distance Weight: -0.134
+Attack Threshold: 0.657
+Q-Value: 321.600
+Total Updates: 4
+
+========== Episode 200/1000 ==========
+Exploration Rates - P1: 0.164, P2: 0.164
+Recent Win Rates - P1: 36.000%, P2: 64.000%
+
+Player 1 Best Parameters:
+Health Weight: 1.411
+Missile Weight: 0.754
+Block Weight: 1.445
+Target Weight: -1.207
+Enemy Distance Weight: 0.179
+Ally Distance Weight: -0.442
+Attack Threshold: 0.370
+Q-Value: 372.000
+Total Updates: 8
+
+Player 2 Best Parameters:
+Health Weight: 0.568
+Missile Weight: 0.995
+Block Weight: 1.737
+Target Weight: -0.063
+Enemy Distance Weight: 0.690
+Ally Distance Weight: -0.134
+Attack Threshold: 0.657
+Q-Value: 321.600
+Total Updates: 4
+
+Player 2 - Update #5:
+New Q-Value: 367.200
+Parameters:
+Health Weight: 0.700
+Missile Weight: 1.199
+Block Weight: 1.581
+Target Weight: 0.000
+Enemy Distance Weight: 0.599
+Ally Distance Weight: -0.506
+Attack Threshold: 0.756
+
+========== Episode 250/1000 ==========
+Exploration Rates - P1: 0.142, P2: 0.142
+Recent Win Rates - P1: 42.000%, P2: 56.000%
+
+Player 1 Best Parameters:
+Health Weight: 1.411
+Missile Weight: 0.754
+Block Weight: 1.445
+Target Weight: -1.207
+Enemy Distance Weight: 0.179
+Ally Distance Weight: -0.442
+Attack Threshold: 0.370
+Q-Value: 372.000
+Total Updates: 8
+
+Player 2 Best Parameters:
+Health Weight: 0.700
+Missile Weight: 1.199
+Block Weight: 1.581
+Target Weight: 0.000
+Enemy Distance Weight: 0.599
+Ally Distance Weight: -0.506
+Attack Threshold: 0.756
+Q-Value: 367.200
+Total Updates: 5
+
+========== Episode 300/1000 ==========
+Exploration Rates - P1: 0.122, P2: 0.122
+Recent Win Rates - P1: 48.000%, P2: 50.000%
+
+Player 1 Best Parameters:
+Health Weight: 1.411
+Missile Weight: 0.754
+Block Weight: 1.445
+Target Weight: -1.207
+Enemy Distance Weight: 0.179
+Ally Distance Weight: -0.442
+Attack Threshold: 0.370
+Q-Value: 372.000
+Total Updates: 8
+
+Player 2 Best Parameters:
+Health Weight: 0.700
+Missile Weight: 1.199
+Block Weight: 1.581
+Target Weight: 0.000
+Enemy Distance Weight: 0.599
+Ally Distance Weight: -0.506
+Attack Threshold: 0.756
+Q-Value: 367.200
+Total Updates: 5
+
+========== Episode 350/1000 ==========
+Exploration Rates - P1: 0.105, P2: 0.105
+Recent Win Rates - P1: 48.000%, P2: 52.000%
+
+Player 1 Best Parameters:
+Health Weight: 1.411
+Missile Weight: 0.754
+Block Weight: 1.445
+Target Weight: -1.207
+Enemy Distance Weight: 0.179
+Ally Distance Weight: -0.442
+Attack Threshold: 0.370
+Q-Value: 372.000
+Total Updates: 8
+
+Player 2 Best Parameters:
+Health Weight: 0.700
+Missile Weight: 1.199
+Block Weight: 1.581
+Target Weight: 0.000
+Enemy Distance Weight: 0.599
+Ally Distance Weight: -0.506
+Attack Threshold: 0.756
+Q-Value: 367.200
+Total Updates: 5
+
+========== Episode 400/1000 ==========
+Exploration Rates - P1: 0.090, P2: 0.090
+Recent Win Rates - P1: 40.000%, P2: 58.000%
+
+Player 1 Best Parameters:
+Health Weight: 1.411
+Missile Weight: 0.754
+Block Weight: 1.445
+Target Weight: -1.207
+Enemy Distance Weight: 0.179
+Ally Distance Weight: -0.442
+Attack Threshold: 0.370
+Q-Value: 372.000
+Total Updates: 8
+
+Player 2 Best Parameters:
+Health Weight: 0.700
+Missile Weight: 1.199
+Block Weight: 1.581
+Target Weight: 0.000
+Enemy Distance Weight: 0.599
+Ally Distance Weight: -0.506
+Attack Threshold: 0.756
+Q-Value: 367.200
+Total Updates: 5
+
+Player 2 - Update #6:
+New Q-Value: 390.000
+Parameters:
+Health Weight: 0.651
+Missile Weight: 1.271
+Block Weight: 1.428
+Target Weight: 0.000
+Enemy Distance Weight: 0.817
+Ally Distance Weight: -0.352
+Attack Threshold: 0.541
+
+========== Episode 450/1000 ==========
+Exploration Rates - P1: 0.078, P2: 0.078
+Recent Win Rates - P1: 48.000%, P2: 48.000%
+
+Player 1 Best Parameters:
+Health Weight: 1.411
+Missile Weight: 0.754
+Block Weight: 1.445
+Target Weight: -1.207
+Enemy Distance Weight: 0.179
+Ally Distance Weight: -0.442
+Attack Threshold: 0.370
+Q-Value: 372.000
+Total Updates: 8
+
+Player 2 Best Parameters:
+Health Weight: 0.651
+Missile Weight: 1.271
+Block Weight: 1.428
+Target Weight: 0.000
+Enemy Distance Weight: 0.817
+Ally Distance Weight: -0.352
+Attack Threshold: 0.541
+Q-Value: 390.000
+Total Updates: 6
+
+========== Episode 500/1000 ==========
+Exploration Rates - P1: 0.067, P2: 0.067
+Recent Win Rates - P1: 50.000%, P2: 46.000%
+
+Player 1 Best Parameters:
+Health Weight: 1.411
+Missile Weight: 0.754
+Block Weight: 1.445
+Target Weight: -1.207
+Enemy Distance Weight: 0.179
+Ally Distance Weight: -0.442
+Attack Threshold: 0.370
+Q-Value: 372.000
+Total Updates: 8
+
+Player 2 Best Parameters:
+Health Weight: 0.651
+Missile Weight: 1.271
+Block Weight: 1.428
+Target Weight: 0.000
+Enemy Distance Weight: 0.817
+Ally Distance Weight: -0.352
+Attack Threshold: 0.541
+Q-Value: 390.000
+Total Updates: 6
+
+========== Episode 550/1000 ==========
+Exploration Rates - P1: 0.057, P2: 0.057
+Recent Win Rates - P1: 42.000%, P2: 58.000%
+
+Player 1 Best Parameters:
+Health Weight: 1.411
+Missile Weight: 0.754
+Block Weight: 1.445
+Target Weight: -1.207
+Enemy Distance Weight: 0.179
+Ally Distance Weight: -0.442
+Attack Threshold: 0.370
+Q-Value: 372.000
+Total Updates: 8
+
+Player 2 Best Parameters:
+Health Weight: 0.651
+Missile Weight: 1.271
+Block Weight: 1.428
+Target Weight: 0.000
+Enemy Distance Weight: 0.817
+Ally Distance Weight: -0.352
+Attack Threshold: 0.541
+Q-Value: 390.000
+Total Updates: 6
+
+========== Episode 600/1000 ==========
+Exploration Rates - P1: 0.050, P2: 0.050
+Recent Win Rates - P1: 46.000%, P2: 54.000%
+
+Player 1 Best Parameters:
+Health Weight: 1.411
+Missile Weight: 0.754
+Block Weight: 1.445
+Target Weight: -1.207
+Enemy Distance Weight: 0.179
+Ally Distance Weight: -0.442
+Attack Threshold: 0.370
+Q-Value: 372.000
+Total Updates: 8
+
+Player 2 Best Parameters:
+Health Weight: 0.651
+Missile Weight: 1.271
+Block Weight: 1.428
+Target Weight: 0.000
+Enemy Distance Weight: 0.817
+Ally Distance Weight: -0.352
+Attack Threshold: 0.541
+Q-Value: 390.000
+Total Updates: 6
+
+========== Episode 650/1000 ==========
+Exploration Rates - P1: 0.050, P2: 0.050
+Recent Win Rates - P1: 44.000%, P2: 52.000%
+
+Player 1 Best Parameters:
+Health Weight: 1.411
+Missile Weight: 0.754
+Block Weight: 1.445
+Target Weight: -1.207
+Enemy Distance Weight: 0.179
+Ally Distance Weight: -0.442
+Attack Threshold: 0.370
+Q-Value: 372.000
+Total Updates: 8
+
+Player 2 Best Parameters:
+Health Weight: 0.651
+Missile Weight: 1.271
+Block Weight: 1.428
+Target Weight: 0.000
+Enemy Distance Weight: 0.817
+Ally Distance Weight: -0.352
+Attack Threshold: 0.541
+Q-Value: 390.000
+Total Updates: 6
+
+Player 1 - Update #9:
+New Q-Value: 397.200
+Parameters:
+Health Weight: 1.126
+Missile Weight: 0.803
+Block Weight: 1.053
+Target Weight: -1.552
+Enemy Distance Weight: 0.518
+Ally Distance Weight: -0.355
+Attack Threshold: 0.599
+
+========== Episode 700/1000 ==========
+Exploration Rates - P1: 0.050, P2: 0.050
+Recent Win Rates - P1: 52.000%, P2: 48.000%
+
+Player 1 Best Parameters:
+Health Weight: 1.126
+Missile Weight: 0.803
+Block Weight: 1.053
+Target Weight: -1.552
+Enemy Distance Weight: 0.518
+Ally Distance Weight: -0.355
+Attack Threshold: 0.599
+Q-Value: 397.200
+Total Updates: 9
+
+Player 2 Best Parameters:
+Health Weight: 0.651
+Missile Weight: 1.271
+Block Weight: 1.428
+Target Weight: 0.000
+Enemy Distance Weight: 0.817
+Ally Distance Weight: -0.352
+Attack Threshold: 0.541
+Q-Value: 390.000
+Total Updates: 6
+
+========== Episode 750/1000 ==========
+Exploration Rates - P1: 0.050, P2: 0.050
+Recent Win Rates - P1: 58.000%, P2: 40.000%
+
+Player 1 Best Parameters:
+Health Weight: 1.126
+Missile Weight: 0.803
+Block Weight: 1.053
+Target Weight: -1.552
+Enemy Distance Weight: 0.518
+Ally Distance Weight: -0.355
+Attack Threshold: 0.599
+Q-Value: 397.200
+Total Updates: 9
+
+Player 2 Best Parameters:
+Health Weight: 0.651
+Missile Weight: 1.271
+Block Weight: 1.428
+Target Weight: 0.000
+Enemy Distance Weight: 0.817
+Ally Distance Weight: -0.352
+Attack Threshold: 0.541
+Q-Value: 390.000
+Total Updates: 6
+
+========== Episode 800/1000 ==========
+Exploration Rates - P1: 0.050, P2: 0.050
+Recent Win Rates - P1: 58.000%, P2: 36.000%
+
+Player 1 Best Parameters:
+Health Weight: 1.126
+Missile Weight: 0.803
+Block Weight: 1.053
+Target Weight: -1.552
+Enemy Distance Weight: 0.518
+Ally Distance Weight: -0.355
+Attack Threshold: 0.599
+Q-Value: 397.200
+Total Updates: 9
+
+Player 2 Best Parameters:
+Health Weight: 0.651
+Missile Weight: 1.271
+Block Weight: 1.428
+Target Weight: 0.000
+Enemy Distance Weight: 0.817
+Ally Distance Weight: -0.352
+Attack Threshold: 0.541
+Q-Value: 390.000
+Total Updates: 6
+
+========== Episode 850/1000 ==========
+Exploration Rates - P1: 0.050, P2: 0.050
+Recent Win Rates - P1: 68.000%, P2: 30.000%
+
+Player 1 Best Parameters:
+Health Weight: 1.126
+Missile Weight: 0.803
+Block Weight: 1.053
+Target Weight: -1.552
+Enemy Distance Weight: 0.518
+Ally Distance Weight: -0.355
+Attack Threshold: 0.599
+Q-Value: 397.200
+Total Updates: 9
+
+Player 2 Best Parameters:
+Health Weight: 0.651
+Missile Weight: 1.271
+Block Weight: 1.428
+Target Weight: 0.000
+Enemy Distance Weight: 0.817
+Ally Distance Weight: -0.352
+Attack Threshold: 0.541
+Q-Value: 390.000
+Total Updates: 6
+
+========== Episode 900/1000 ==========
+Exploration Rates - P1: 0.050, P2: 0.050
+Recent Win Rates - P1: 56.000%, P2: 40.000%
+
+Player 1 Best Parameters:
+Health Weight: 1.126
+Missile Weight: 0.803
+Block Weight: 1.053
+Target Weight: -1.552
+Enemy Distance Weight: 0.518
+Ally Distance Weight: -0.355
+Attack Threshold: 0.599
+Q-Value: 397.200
+Total Updates: 9
+
+Player 2 Best Parameters:
+Health Weight: 0.651
+Missile Weight: 1.271
+Block Weight: 1.428
+Target Weight: 0.000
+Enemy Distance Weight: 0.817
+Ally Distance Weight: -0.352
+Attack Threshold: 0.541
+Q-Value: 390.000
+Total Updates: 6
+
+========== Episode 950/1000 ==========
+Exploration Rates - P1: 0.050, P2: 0.050
+Recent Win Rates - P1: 72.000%, P2: 26.000%
+
+Player 1 Best Parameters:
+Health Weight: 1.126
+Missile Weight: 0.803
+Block Weight: 1.053
+Target Weight: -1.552
+Enemy Distance Weight: 0.518
+Ally Distance Weight: -0.355
+Attack Threshold: 0.599
+Q-Value: 397.200
+Total Updates: 9
+
+Player 2 Best Parameters:
+Health Weight: 0.651
+Missile Weight: 1.271
+Block Weight: 1.428
+Target Weight: 0.000
+Enemy Distance Weight: 0.817
+Ally Distance Weight: -0.352
+Attack Threshold: 0.541
+Q-Value: 390.000
+Total Updates: 6
+
+========== Episode 1000/1000 ==========
+Exploration Rates - P1: 0.050, P2: 0.050
+Recent Win Rates - P1: 62.000%, P2: 36.000%
+
+Player 1 Best Parameters:
+Health Weight: 1.126
+Missile Weight: 0.803
+Block Weight: 1.053
+Target Weight: -1.552
+Enemy Distance Weight: 0.518
+Ally Distance Weight: -0.355
+Attack Threshold: 0.599
+Q-Value: 397.200
+Total Updates: 9
+
+Player 2 Best Parameters:
+Health Weight: 0.651
+Missile Weight: 1.271
+Block Weight: 1.428
+Target Weight: 0.000
+Enemy Distance Weight: 0.817
+Ally Distance Weight: -0.352
+Attack Threshold: 0.541
+Q-Value: 390.000
+Total Updates: 6
+
+===== Training Complete =====
+
+Final Parameters:
+
+Player 1 Best Parameters:
+Health Weight: 1.126
+Missile Weight: 0.803
+Block Weight: 1.053
+Target Weight: -1.552
+Enemy Distance Weight: 0.518
+Ally Distance Weight: -0.355
+Attack Threshold: 0.599
+Q-Value: 397.200
+Total Updates: 9
+
+Player 2 Best Parameters:
+Health Weight: 0.651
+Missile Weight: 1.271
+Block Weight: 1.428
+Target Weight: 0.000
+Enemy Distance Weight: 0.817
+Ally Distance Weight: -0.352
+Attack Threshold: 0.541
+Q-Value: 390.000
+Total Updates: 6
+
+Process finished with exit code 0
