@@ -1,3 +1,0 @@
-D:/CProject/TurnBaseShipSimulator/cmake-build-debug/CMakeFiles/TurnBaseShipSimulator.dir
-D:/CProject/TurnBaseShipSimulator/cmake-build-debug/CMakeFiles/edit_cache.dir
-D:/CProject/TurnBaseShipSimulator/cmake-build-debug/CMakeFiles/rebuild_cache.dir

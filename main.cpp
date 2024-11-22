@@ -25,21 +25,21 @@ struct StrategyParams {
 
     StrategyParams(bool isFirstPlayer) {
         if (isFirstPlayer) {
-            healthWeight = 0.582;
-            missileWeight =  1.095;
-            blockWeight =  -1.189;
-            targetWeight =0.603;
-            enemyDistanceWeight = -0.772;
-            allyDistanceWeight = 3.170;
-            attackThreshold=0.574;
+            healthWeight = -1.896;
+            missileWeight =  1.594;
+            blockWeight = -0.790;
+            targetWeight = -1.110;
+            enemyDistanceWeight = -0.478;
+            allyDistanceWeight = -1.598;
+            attackThreshold= -1.772;
         } else {
-            healthWeight = 0.582;
-            missileWeight =  1.095;
-            blockWeight =  -1.189;
-            targetWeight =0.603;
-            enemyDistanceWeight = -0.772;
-            allyDistanceWeight = 3.170;
-            attackThreshold=0.574;
+            healthWeight = -1.583;
+            missileWeight =  1.054;
+            blockWeight =   1.130;
+            targetWeight = -1.348;
+            enemyDistanceWeight = -0.641;
+            allyDistanceWeight =  -0.301;
+            attackThreshold= 0.108;
         }
     }
 
@@ -278,7 +278,7 @@ public:
             std::string explanation;
             double score = evaluateMove(move, ship, enemy, explanation);
 
-            if (score > best.score && score>params.attackThreshold) {
+            if (score > best.score ) {
                 best = {move, score, explanation};
             }
         }
@@ -373,7 +373,7 @@ public:
                                                 missileType, explanation);
                     score += totalScore;
 
-                    if (score > best.score) {
+                    if (score > best.score && score>params.attackThreshold) {
                         best = {target, missileType, score, explanation,
                               targetsOnRay};
                     }
@@ -398,7 +398,7 @@ private:
     bool isFirstPlayer;
     std::vector<Ship> ships;
     StrategyParams params;
-    double attackThreshold = 0.0;
+
 
     void initializeShips(bool isFirst) {
         if(isFirst) {
@@ -454,7 +454,7 @@ private:
         }
     }
     score += enemyDistanceScore;
-
+    //std::cout<<"score after calculating enemy distance score: "<<score<<std::endl;
 
     double allyDistanceScore = 0;
     for (const Ship& allyShip : ships) {
@@ -464,7 +464,7 @@ private:
         }
     }
     score += allyDistanceScore;
-
+    //std::cout<<"score after calculating ally distance score: "<<score<<std::endl;
 
     int blockCount = 0, targetCount = 0;
     for (const Ship& enemyShip : enemy.getShips()) {
@@ -517,7 +517,7 @@ private:
 
     score += blockCount * params.blockWeight * ship.getValue(params);
     score += targetCount * params.targetWeight * ship.getValue(params);
-
+    //std::cout<<"score after calculating block and target score: "<<score<<std::endl;
     return score;
 }
 
@@ -809,11 +809,16 @@ private:
     GameResult getGameResult(double duration) const {
         int p1Ships = 0, p1Health = 0;
         int p2Ships = 0, p2Health = 0;
+        int p1shipDestroyed=0;
+        int p2shipDestroyed=0;
 
         for (const Ship& ship : player1.getShips()) {
             if (!ship.isDead()) {
                 ++p1Ships;
                 p1Health += ship.getHealth();
+            }
+            else {
+                p1shipDestroyed++;
             }
         }
 
@@ -822,12 +827,15 @@ private:
                 ++p2Ships;
                 p2Health += ship.getHealth();
             }
+            else {
+                p2shipDestroyed++;
+            }
         }
 
         int winner;
-        if (p1Ships > p2Ships || (p1Ships == p2Ships && p1Health > p2Health)) {
+        if (p1shipDestroyed < p2shipDestroyed || (p1shipDestroyed == p2shipDestroyed && p1Health > p2Health)) {
             winner = 1;
-        } else if (p2Ships > p1Ships || (p1Ships == p2Ships && p2Health > p1Health)) {
+        } else if (p2shipDestroyed < p1shipDestroyed || (p1shipDestroyed == p2shipDestroyed && p2Health > p1Health)) {
             winner = 2;
         } else {
             winner = 0;
@@ -912,7 +920,7 @@ public:
 
             for (size_t i = 0; i < 7; i++) {
                 double baseValue = currentBestParams[i];
-                double variation = (i == 3 || i == 5) ? 0.4 : 0.4;
+                double variation = 0.5;
                 newParams[i] = baseValue + (dist(rng) * 2 - 1) * variation;
 
 
@@ -1002,8 +1010,8 @@ void runParameterExperiment() {
     const int TRAINING_EPISODES = 1000;
     const int LOG_INTERVAL = 50;
 
-    QAgent p1Agent("Player 1", true, 0.1, 0.95, 0.3);
-    QAgent p2Agent("Player 2", false, 0.1, 0.95, 0.3);
+    QAgent p1Agent("Player 1", true, 0.1, 0.95, 0.5);
+    QAgent p2Agent("Player 2", false, 0.1, 0.95, 0.5);
 
     int windowSize = LOG_INTERVAL;
     int p1WinsInWindow = 0;
@@ -1024,15 +1032,15 @@ void runParameterExperiment() {
         else if (result.winner == 2) p2WinsInWindow++;
 
 
-        double p1Reward = (result.p1Ships * 20.0) +
+        double p1Reward = (result.p1Ships * 10.0) +
                          (result.p1Health * 1.0) +
-                         (result.winner == 1 ? 200.0 : -50.0) -
+                         (result.winner == 1 ? 200.0 : -50) -
                          (result.p2Ships * 40.0) -
                          (result.p2Health * 1.5);
 
-        double p2Reward = (result.p2Ships * 20.0) +
+        double p2Reward = (result.p2Ships * 10.0) +
                          (result.p2Health * 1.0) +
-                         (result.winner == 2 ? 200.0 : -50.0) -
+                         (result.winner == 2 ? 200.0 : -50) -
                          (result.p1Ships * 40.0) -
                          (result.p1Health * 1.5);
 
@@ -1075,13 +1083,17 @@ void runParameterExperiment() {
     p2Agent.printBestParameters();
 }
 void runDifferentStrategy() {
-    const int EXPERIMENT_ROUNDS = 10;
+    const int EXPERIMENT_ROUNDS = 20;
     std::vector<std::pair<std::string, StrategyParams>> paramSets = {
-        {"Aggressive", StrategyParams(1.0, 1.0, 0.8, -0.5, 0.5, -0.5,0)}, // relative less block and  target weight
-        {"Defensive", StrategyParams(1.0, 1.0, 1.2, -1.5, 0.5, -0.5,2)}, // relative high block and target weight
-        {"Balanced", StrategyParams(1.0, 1.0, 1.0, -1.0, 0.5, -0.5,1)},  // normal
-        {"RL_Player1", StrategyParams(0.653,  1.095, -1.189, 0.603, -0.772, 3.170,0.574)},
-        {"RL_Player2", StrategyParams(1.226, 0.904, -0.882, 0.466,  -0.903,  3.218,0.793)}
+         {"Aggressive", StrategyParams(-1.0, 1.0, 0.8, -0.5, 0.5, -0.5,0)}, // relative less block and  target weight
+         {"Defensive", StrategyParams(-1.0, 1.0, 1.2, -1.5, 0.5, -0.5,2)}, // relative high block and target weight
+        {"Balanced", StrategyParams(-1.0, 1.0, 1.0, -1.0, 0.5, -0.5,1)},  // normal
+        {"RL_Player2", StrategyParams( -1.583,   1.054, 1.130,  -1.348, -0.641,  -0.301, 0.108)}, // defensive
+        {"RL_Player1", StrategyParams(-0.955, 0.655, 0.288, -1.263, 0.074, -0.530,-0.175)},// counter
+        {"RL_Player1_v2", StrategyParams(-1.896,-1.594, 0.790, 1.110, 0.478, 1.598,1.772)},
+        {"RL_Player2_v2", StrategyParams(-1.685, 0.782, 0.741, -1.793, -0.753, -0.492, 0.482)}
+
+
     };
 
 
